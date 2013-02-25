@@ -1,4 +1,7 @@
 module Diffusion
+
+export aug, bb, brown1, cumsum0, dW, dW1, dWcond, euler, ito, quvar, ydx, bracket, (..)
+
 # lines starting with "#%" contain the documentation in ReST
 # the leading "#%" and up to 2 spaces are removed. 
 # careful, depending on your tab length, 8 spaces and one tab may look identically aligned, but may end up not so
@@ -12,8 +15,8 @@ module Diffusion
 #%  .. |Ito| unicode:: Ito
 #%
 
-#%  Introduction
-#%  ------------
+#%  Introduction to module Diffusion
+#%  --------------------------------
 #%  
 #%  The functions in this module operate on three conceptual different objects, (although they 
 #%  are currently just represented as vectors and arrays.)

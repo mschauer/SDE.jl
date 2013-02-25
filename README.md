@@ -21,9 +21,12 @@ then computed using Gaussian conjugacy.
 This is work in progress.
 
 
-Module `Diffusion`
-------------------
-Currently no use of the Julia type system is made, all processes are just arrays.
+
+Packaging steps remaining
+-------------------------
+- From within Julia, execute the command `Pkg.version("Packagename", v"0.0.0")`. This will  create a directory `.julia/METADATA/Packagename`, which is what you need to have your package registered.
+- In `.julia/METADATA/Packagename`, create a file `url` that contains the *read-only* URL for your public repository. For example, git://github.com/mygithubaccount/Packagename.jl.git.
+- Commit your changes to `.julia/METADATA`, push to your public `METADATA` repository, and submit a pull request.
 
 
 
