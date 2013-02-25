@@ -8,7 +8,8 @@ module Diffusion
 
 #%  .. currentmodule:: Diffusion
 #%    
-#%  .. |Ito| unicode:: It U+014D
+##%  .. |Ito| unicode:: It U+014D
+#%  .. |Ito| unicode:: Ito
 #%
 
 #%  Introduction
@@ -36,8 +37,8 @@ module Diffusion
 
 
 
-#%  Documentation
-#%  -------------
+#%  Reference 
+#%  ---------
 #%  
 #%  .. function:: brown1(u, t, n::Integer) 
 #%  
@@ -165,7 +166,7 @@ end
 #%  .. function:: ..(y, dx)
 #%                ydx(y, dx)
 #%  
-#%  	``y .. dx'' returns the stochastic differential ``ydx`` defined by the property
+#%  	``y .. dx`` returns the stochastic differential ``ydx`` defined by the property
 #%  
 #% 		ito(ydx) == ito(y, dx)
 #%  
@@ -278,9 +279,9 @@ end
 #%  .. function:: euler(t0, u, b, sigma, dt, dw)
 #%                euler(t0, u, b, sigma, dt)
 #%  
-#%  	Simulates the Euler approximation of a diffusion process
+#%  	Simulates a diffusion process using the Euler-Maruyama approximation
 #%  	with drift ``b(t,x)`` and diffusion coefficient ``sigma(t,x)``
-#%  	starting in ``(t0, u)`` using ``dt` and given Wiener differential ``dw``.
+#%  	starting in ``(t0, u)`` using ``dt`` and given Wiener differential ``dw``.
 #%  
 
 #euler: computes the euler approximation of a 
