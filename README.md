@@ -19,3 +19,12 @@ on the coefficients. This incorporates a Brownian motion like prior on the drift
 then computed using Gaussian conjugacy.
 
 This is work in progress.
+
+
+Module `Diffusion`
+------------------
+Currently no use of the Julia type system is made, all processes are just arrays.
+
+
+
+
