@@ -6,7 +6,7 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 
 #%  Introduction to module Schauder
 #%  -------------------------------
-#%  In the following ``hat(t)`` is the piecewise linear function taking values
+#%  In the following ``hat(x)`` is the piecewise linear function taking values
 #%  values ``(0,0), (0.5,1), (1,0)`` on the interval ``[0,1]`` and ``0`` elsewhere.
 #%  
 #%  The Schauder basis of level ``L > 0`` in the interval ``[a,b]`` can be defined recursively
@@ -14,7 +14,6 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 #%  
 #%  	``a + (1:n)/(n+1)*(b-a)``.
 #%  
-#%  For simplicity, we assume ``[a,b] = [0,1]``.
 #%  
 #%  Assume that f is expressed as linear combination 
 #%  
@@ -22,7 +21,9 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 #%  
 #%  with 
 #%  
-#%  	:math:`\psi_{2j-1}(x) = hat(nx-j + 1)` 	for :math:`j = 1 \dots 2^{L-1}` and 
+#%  	:math:`\psi_{2j-1}(x) = hat(nx-j + 1)` 	for :math:`j = 1 \dots 2^{L-1}` 
+#%  
+#%  and 
 #%  
 #%  	:math:`\psi_{2j}(x) = hat(nx-j + 1/2)` 	for :math:`j = 1 \dots 2^{L-1}-1`
 #%
@@ -53,7 +54,8 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 #%  
 #%  	:math:`\phi_2(x) = \psi_1(x) + 2\psi_2(x) + \psi_2(x)`
 #%  
-#%  This can be implemented inplace (see ``pickup()``) 
+#%  This can be implemented inplace (see ``pickup()``), and is used throughout. 
+#%  
 
 #%  
 #% .. code-block:: matlab
@@ -76,7 +78,7 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 #%  .. function:: pickup(x)
 #%  
 #%  	Inplace computation of 2^L-1 Schauder-Faber coefficients from 
-#%  	``2^L`` overlapping finite-element coefficients ``x``.
+#%  	``2^L-1`` overlapping finite-element coefficients ``x``.
 #%  	-- inverse of ``Schauder.drop``
 #%  	-- L = level(xj)
 #%  

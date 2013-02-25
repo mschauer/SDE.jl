@@ -1,6 +1,5 @@
 module Diffusion
-
-export aug, bb, brown1, cumsum0, dW, dW1, dWcond, euler, ito, quvar, ydx, bracket, (..)
+export aug, bb, brown, brown1, cumsum0, dW, dW1, dWcond, euler, ito, quvar, ydx, bracket, (..)
 
 # lines starting with "#%" contain the documentation in ReST
 # the leading "#%" and up to 2 spaces are removed. 
@@ -123,15 +122,17 @@ end
 #%	``ito(dx)`` is a shortcut for ``ito(ones(size(dx)[end], dx)``.
 #%	So ``ito(dx)`` is just a ``cumsum0`` function which is a inverse to ``dx = diff([0, x1, x2, x3,...])``.
 #% 
-function ito(dx::Vector)
-	n = length(dx) + 1
+function cumsum0(dx::Vector)
+ 	n = length(dx) + 1
 	x = similar(dx, n)
 	x[1] = 0
 	for i in 2:n
-		x[i] += x[i-1] + dx[i-1] 
+		x[i] = x[i-1] + dx[i-1] 
 	end
 	x
 end
+
+ito(dx::Vector) = cumsum0(dx)
 
 function ito(dx)
 	s = [size(dx)...]
@@ -140,10 +141,10 @@ function ito(dx)
 	x = similar(dx, s...)
 	if(d==2)
 		x[:,1] = 0.0
-		for i in 2:n;	x[:,i] += x[:,i-1] + dx[:,i-1]; end	
+		for i in 2:n;	x[:,i] = x[:,i-1] + dx[:,i-1]; end	
 	elseif (d==3)
 		x[:,:,1] = 0.0
-		for i in 2:n;	x[:,:,i] += x[:,:,i-1] + dx[:,:,i-1]; end
+		for i in 2:n;	x[:,:,i] = x[:,:,i-1] + dx[:,:,i-1]; end
 	else
 		error("ndims(dx) > 3 not implemented")
 	end
@@ -151,20 +152,19 @@ function ito(dx)
 end
 
 
-
-sint(dw) = ito(dw)
-
-function ito(x::Matrix, dw::Matrix)
-	s = size(dw)[end]
-	#determine size ``experimentally''
-	dim = [size(x[:,1]*dw[:,1]), n]
-	y = similar(dw, dim...)
-	y[:,1] = 0
+function ito(x::Vector, dw::Vector)
+	n = length(dw) + 1
+	y = similar(dw, n)
+	y[1] = 0
 	for i in 2:n
-		y[:,1] += y[:,i-1] + x[:,i-1]*dw[:,i-1] 
+		y[i] = y[i-1] + x[i-1]*dw[i-1] 
 	end
+	y
 end
 
+
+#TODO  ito(x::Array, dw::Array)
+ 
 
 #%  .. function:: ..(y, dx)
 #%                ydx(y, dx)
@@ -175,15 +175,16 @@ end
 #%  
 
 
-function ydx(y, dx)
-	n = size(dx)[1]
-	dim = [n, size(y[1,:]*dx[1,:])...]
-	dy = zeros(dim...)
-	for i in 2:n+1
-		dy[i-1, :] = y[i-1,:]*dx[i-1,:] 
+
+function ydx(y::Vector, dx::Vector)
+	n = length(dx) +1
+	dy = zeros(n)
+	for i in 2:n
+		dy[i-1] = y[i-1]*dx[i-1] 
 	end
 	return dy
 end
+
 
 
 function ydx(y::Matrix, dx::Matrix)
@@ -214,8 +215,8 @@ end
 #%  
 
 function bb(u, v, t, n) 
-	x = cumsum(randn(n)*sqrt(t/(n-1)))
-	u + x + dT(v-u-x[end], n)
+	x = cumsum0(randn(n-1)*sqrt(t/(n-1)))
+	u + x + linspace(0, v-u-x[end], n)
 end
 
 #%  .. function:: dWcond1(v,t,n)
@@ -238,13 +239,21 @@ end
 #%  	between each observation with new length ``length(dw)*n``.
 #%  	``aug(dt,n)`` computes the corresponding subsample of times.
 #%  
-function aug(dw, dt, n)
+function aug(dw, dt::Vector, n)
 	x = zeros(length(dw)*n)
 	for i in 1:length(dw)
 		x[(1:n)+(i-1)*n] = dWcond(dw[i], dt[i], n)
 	end
 	x
 end
+function aug(dw, dt, n)
+	x = zeros(length(dw)*n)
+	for i in 1:length(dw)
+		x[(1:n)+(i-1)*n] = dWcond(dw[i], dt, n)
+	end
+	x
+end
+
 
 function aug(dt, n)
 	x = zeros(length(dt)*n)
@@ -261,8 +270,8 @@ end
 #%  	Computes quadratic variation of ``x``.
 #%  	
 
-function quvar(x)
-	sum(diff(x,2).^2)
+function quvar(x::Vector)
+	sum(diff(x).^2)
 end
 
 #%  .. function:: bracket(x)
@@ -288,7 +297,7 @@ end
 #%  
 
 #euler: computes the euler approximation of a 
-function euler(t0, u, b, sigma, dt, dw)
+function euler(t0, u, b, sigma, dt::Vector, dw)
 	X = zeros(length(dw)+1)
 	X[1] = u
 	t = t0
@@ -298,6 +307,17 @@ function euler(t0, u, b, sigma, dt, dw)
 	end
 	X
 end
-euler(t0, u, b, sigma, dt) = euler(t0, u, b, sigma, dt, dW1(dt))
+function euler(t0, u, b, sigma, dt::Float64, dw)
+	X = zeros(length(dw)+1)
+	X[1] = u
+	t = t0
+	
+	for i in 1:length(dw)
+		t += dt 
+		X[i+1] = X[i] + b(t,X[i])*dt  + sigma(t,dw[i])*dw[i]
+	end
+	X
+end
+euler(t0, u, b, sigma, dt::Vector) = euler(t0, u, b, sigma, dt, dW1(dt))
 	
 end
