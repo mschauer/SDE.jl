@@ -21,13 +21,13 @@ then computed using Gaussian conjugacy.
 This is work in progress.
 
 
+Data structures
+---------------
 
-Packaging steps remaining
--------------------------
-- From within Julia, execute the command `Pkg.version("Packagename", v"0.0.0")`. This will  create a directory `.julia/METADATA/Packagename`, which is what you need to have your package registered.
-- In `.julia/METADATA/Packagename`, create a file `url` that contains the *read-only* URL for your public repository. For example, git://github.com/mygithubaccount/Packagename.jl.git.
-- Commit your changes to `.julia/METADATA`, push to your public `METADATA` repository, and submit a pull request.
+I did not introduce type definitions for stochastic processes and use vectors/arrays, so it should be easy do wrap Dataframes around everything. For the meanwhile, I like the natural notation obtained by having just vectors/arrays for dW and dt
 
-
-
+	N = 100
+	t = linspace(0., 1., N)
+	dt = diff(t)
+	X = ito(2dt + 2dW1(dt))
 
