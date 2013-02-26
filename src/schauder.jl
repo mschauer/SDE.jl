@@ -1,5 +1,5 @@
 module Schauder
-export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permutationmatrix, pickup!, pickup, drop!, drop, dropB1, drobB2, hat, fe_transf, fe_transB2, fe_transB1
+export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permutationmatrix, pickup!, pickup, drop!, drop, dropB1, dropB2, hat, fe_transf, fe_transfB2, fe_transfB1
 
 #%  .. currentmodule:: Schauder
 #%    
@@ -282,8 +282,8 @@ end
 
 
 function fe_transf(f, a,b, L)
-	n = 2^L-1 	
-	return map(f, a + (1:n)/(n+1)*(b-a))
+	n::Float64 = 2^L-1 	
+	return map!(f, a + [1.:n]/(n+1.)*(b-a))
 end
 
 # versions for different basis elements
@@ -291,14 +291,14 @@ end
 # phi1(x) = x
 # phi2(x) = 1-x
 function fe_transfB2(f, a,b, L)
-	n = 2^L-1 	
-		return	[map(f, a + (1:n)/(n+1)*(b-a)) - (1:n)/(n+1)*f(a) - (n:-1:1)/(n+1)*f(b) ,f(a) , f(b)]
+	n::Float64 = 2^L-1 	
+		return	[map!(f, a + [1.:n]/(n+1.)*(b-a)) - [1.:n]/(n+1.)*f(a) - [n:-1.:1.]/(n+1.)*f(b) ,f(a) , f(b)]
 end
 # phi1(x) = c
 # periodic boundary condition
 function fe_transfB1(f, a,b, L)
-	n = 2^L-1 	
-	return	[map(f, a + (1:n)/(n+1)*(b-a)) .- 0.5(f(a) + f(b)), 0.5(f(a) + f(b))]
+	n::Float64 = 2^L-1 	
+	return	[map!(f, a + [1:n]/(n+1)*(b-a)) .- 0.5(f(a) + f(b)), 0.5(f(a) + f(b))]
 end
 
 
