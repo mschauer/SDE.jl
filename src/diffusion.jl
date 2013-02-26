@@ -307,7 +307,7 @@ function euler(t0, u, b, sigma, dt::Vector, dw)
 	end
 	X
 end
-function euler(t0, u, b, sigma, dt::Float64, dw)
+function euler(t0, u, b, sigma, dt::Float64, dw::Vector)
 	X = zeros(length(dw)+1)
 	X[1] = u
 	t = t0
@@ -319,5 +319,5 @@ function euler(t0, u, b, sigma, dt::Float64, dw)
 	X
 end
 euler(t0, u, b, sigma, dt::Vector) = euler(t0, u, b, sigma, dt, dW1(dt))
-	
+
 end

@@ -3,7 +3,8 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 
 #%  .. currentmodule:: Schauder
 #%    
-
+#%  .. _modschauder:
+#%
 #%  Introduction to module Schauder
 #%  -------------------------------
 #%  In the following ``hat(x)`` is the piecewise linear function taking values
@@ -75,17 +76,20 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 #%  ---------
 #%  
 #%  
-#%  .. function:: pickup(x)
+#%  .. function:: pickup!(x)
 #%  
 #%  	Inplace computation of 2^L-1 Schauder-Faber coefficients from 
 #%  	``2^L-1`` overlapping finite-element coefficients ``x``.
+#%  
 #%  	-- inverse of ``Schauder.drop``
+#%  
 #%  	-- L = level(xj)
 #%  
-#%  .. function:: drop(x)
+#%  .. function:: drop!(x)
 #%  
 #%  	Inplace computation of 2^L-1 finite element coefficients from 
 #%  	2^L-1 Faber schauder coefficients ``x``.
+#%  
 #%  	-- inverse of ``Schauder.pickup``
 #%  
 #%  .. function:: finger_permute(x)
@@ -94,14 +98,13 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 #%  	of the elements of a Faber-Schauder-basis from
 #%  	left to right, from bottom to top.
 #%  
-#%  .. function:: function finger_pm(L, K))
+#%  .. function:: finger_pm(L, K)
 #%  
 #%  	Returns the permuation used in ``finger_permute``.
 #%  	Memoized reordering of faber schauder elements from low level to high level. The last K elements/rows are left untouched.
 #%  
 
 order(a,b) = a > b ? (b,a): (a,b)
-range(a) = (min(a), max(a))
 
 
 function ilogbi(n::Integer)

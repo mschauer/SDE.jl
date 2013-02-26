@@ -1,0 +1,234 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction to module SdeNonparBayes &mdash; itostat 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="itostat 0.0.1 documentation" href="index.html" />
+    <link rel="prev" title="Introduction to module Schauder" href="schauder.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="schauder.html" title="Introduction to module Schauder"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">itostat 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction-to-module-sdenonparbayes">
+<h1>Introduction to module SdeNonparBayes<a class="headerlink" href="#introduction-to-module-sdenonparbayes" title="Permalink to this headline">¶</a></h1>
+<p>The procedure is as follows.
+Consider the diffusion process <span class="math">\((x_t\colon 0 \le t \le T)\)</span> given by</p>
+<blockquote>
+<div><span class="math">\(dx_t = b(x_t) dt + dw_t\)</span></div></blockquote>
+<p>where the drift <tt class="docutils literal"><span class="pre">b</span></tt> is expressed as linear combination</p>
+<blockquote>
+<div><span class="math">\(f(x) = \sum_{i =1}^n c_i \phi_i(x)\)</span></div></blockquote>
+<p>(see <a class="reference internal" href="schauder.html#modschauder"><em>Introduction to module Schauder</em></a>) and
+prior distribution on the coefficients</p>
+<blockquote>
+<div><span class="math">\(c_i \sim N(0,\xi_i)\)</span></div></blockquote>
+<p>Then the posterior distribution of <span class="math">\(b\)</span> given observations <span class="math">\(x_t\)</span> is given by</p>
+<blockquote>
+<div><span class="math">\(c_i | x_s \sim N(W^{-1}\mu, W^{-1})\)</span>
+<span class="math">\(W = \Sigma + (\operatorname{diag}(\xi))^{-1}\)</span>,</div></blockquote>
+<p>with the nxn-matrix</p>
+<blockquote>
+<div><span class="math">\(\Sigma_{ij} = \int_0^T \phi_i(x_t)\phi_j(x_t) dt\)</span></div></blockquote>
+<p>and the n-vector</p>
+<blockquote>
+<div><span class="math">\(\mu_i = \int_0^T \phi_i(x_t) d x_t\)</span>.</div></blockquote>
+<p>Using the recursion detailed in <a class="reference internal" href="schauder.html#modschauder"><em>Introduction to module Schauder</em></a>, one rather computes</p>
+<blockquote>
+<div><span class="math">\(\Sigma^\prime_{ij} = \int_0^T \psi_i(x_t)\psi_j(x_t) dt\)</span></div></blockquote>
+<p>and the n-vector</p>
+<blockquote>
+<div><span class="math">\(\mu^\prime_i = \int_0^T \psi_i(x_t) d x_t\)</span></div></blockquote>
+<p>and uses <tt class="docutils literal"><span class="pre">pickup_mu!(mu)</span></tt> and <tt class="docutils literal"><span class="pre">pickup_Sigma!(Sigma)</span></tt> to obtain <span class="math">\(\mu\)</span> and <span class="math">\(\Sigma\)</span>.</p>
+<div class="section" id="optional-additial-basis-functions">
+<h2>Optional additial basis functions<a class="headerlink" href="#optional-additial-basis-functions" title="Permalink to this headline">¶</a></h2>
+<p>One can extend the basis by additional functions, implemented are variants. <tt class="docutils literal"><span class="pre">B1</span></tt> includes a constant, <tt class="docutils literal"><span class="pre">B2</span></tt> two linear functions</p>
+<dl class="docutils">
+<dt><tt class="docutils literal"><span class="pre">B1</span></tt></dt>
+<dd><span class="math">\(\phi_1 \dots \phi_n, c\)</span></dd>
+<dt><tt class="docutils literal"><span class="pre">B2</span></tt></dt>
+<dd><span class="math">\(\phi_1 \dots \phi_n, \max(1-x, 0), \max(x, 0)\)</span></dd>
+</dl>
+<p>To compute <tt class="docutils literal"><span class="pre">mu</span></tt>, use</p>
+<div class="highlight-matlab"><div class="highlight"><pre><span class="n">mu</span> <span class="p">=</span> <span class="n">pickup_mu</span>!<span class="p">(</span><span class="n">fe_mu</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="p">,</span> 0<span class="p">))</span>
+<span class="n">mu</span> <span class="p">=</span> <span class="n">fe_muB1</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
+</pre></div>
+</div>
+<p>or</p>
+<div class="highlight-matlab"><div class="highlight"><pre><span class="n">mu</span> <span class="p">=</span> <span class="n">pickup_mu</span>!<span class="p">(</span><span class="n">fe_mu</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="p">,</span> 0<span class="p">))</span>
+<span class="n">mu</span> <span class="p">=</span> <span class="n">fe_muB2</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
+</pre></div>
+</div>
+</div>
+</div>
+<div class="section" id="reference">
+<h1>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h1>
+<p>Functions taking <tt class="docutils literal"><span class="pre">y`</span> <span class="pre">without</span> <span class="pre">parameter</span> <span class="pre">[a,b]</span> <span class="pre">expect</span> <span class="pre">``y</span></tt> to be shifted into the intervall <tt class="docutils literal"><span class="pre">[0,1]</span></tt>.</p>
+<dl class="function">
+<dt id="SdeNonparBayes.pickup_mu!">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">pickup_mu!</tt><big>(</big><em>mu</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.pickup_mu!" title="Permalink to this definition">¶</a></dt>
+<dd><p>computes mu from mu&#8217;</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.drop_mu!">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">drop_mu!</tt><big>(</big><em>mu</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.drop_mu!" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes mu&#8217; from mu.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.pickup_Sigma!">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">pickup_Sigma!</tt><big>(</big><em>Sigma</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.pickup_Sigma!" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms Sigma&#8217; into Sigma.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.drop_Sigma!">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">drop_Sigma!</tt><big>(</big><em>Sigma</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.drop_Sigma!" title="Permalink to this definition">¶</a></dt>
+<dd><p>Transforms Sigma into Sigma&#8217;.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.fe_mu">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">fe_mu</tt><big>(</big><em>y</em>, <em>L</em>, <em>K</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.fe_mu" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes mu&#8217; from the observations <cite>y</cite> using <tt class="docutils literal"><span class="pre">2^L-1</span></tt> basis elements
+and returns a vector with <tt class="docutils literal"><span class="pre">K</span></tt> trailing zeros (in case one ones to customize
+the basis.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.fe_muB1">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">fe_muB1</tt><big>(</big><em>mu</em>, <em>y</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.fe_muB1" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append <span class="math">\(\mu_{n+1} = \int_0^T \phi_{n+1} d x_t\)</span> with <span class="math">\(\phi_{n+1} = 1\)</span>.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.fe_muB2">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">fe_muB2</tt><big>(</big><em>mu</em>, <em>y</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.fe_muB2" title="Permalink to this definition">¶</a></dt>
+<dd><p>Append <span class="math">\(\mu_{n+1} = \int_0^T \phi_{n+1} d x_t\)</span> with <span class="math">\(\phi_{n+1} =  \max(1-x, 0)\)</span>
+and <span class="math">\(\mu_{n+2} = \int_0^T \phi_{n+2} d x_t\)</span> with <span class="math">\(\phi_{n+2} =  \max(x, 0)\)</span></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.fe_Sigma">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">fe_Sigma</tt><big>(</big><em>y</em>, <em>dt</em>, <em>L</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.fe_Sigma" title="Permalink to this definition">¶</a></dt>
+<dd><p>Computes the matrix Sigma&#8217; from the observations <cite>y</cite> uniformly spaced at distance <tt class="docutils literal"><span class="pre">dt</span></tt>
+using <tt class="docutils literal"><span class="pre">2^L-1</span></tt> basis elements.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.bayes_drift">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">bayes_drift</tt><big>(</big><em>x</em>, <em>dt</em>, <em>a</em>, <em>b</em>, <em>L</em>, <em>xirem</em>, <em>beta</em>, <em>B</em><big>)</big><a class="headerlink" href="#SdeNonparBayes.bayes_drift" title="Permalink to this definition">¶</a></dt>
+<dd><p>Performs estimation of drift on observations <tt class="docutils literal"><span class="pre">x</span></tt> in [a,b] spaced at distance <tt class="docutils literal"><span class="pre">dt</span></tt>
+using the Schauder basis of level <tt class="docutils literal"><span class="pre">L</span></tt> and level wise coefficients decaying at rate <tt class="docutils literal"><span class="pre">beta</span></tt>.
+A Brownian motion like prior is obtained for beta= 0.5. The <tt class="docutils literal"><span class="pre">K</span></tt> remaining optional
+basiselements have variance <tt class="docutils literal"><span class="pre">xirem</span></tt>.</p>
+<p>The result is returned as <tt class="docutils literal"><span class="pre">[designp</span> <span class="pre">coeff</span> <span class="pre">se]</span></tt> where <tt class="docutils literal"><span class="pre">coeff</span></tt> are coefficients of finite elements with maximum at the designpoints <tt class="docutils literal"><span class="pre">designp</span></tt> and standard error <tt class="docutils literal"><span class="pre">se</span></tt>.</p>
+<p>Observations outside [a,b] may influence the result through <tt class="docutils literal"><span class="pre">phi_{n+1},</span> <span class="pre">...,</span> <span class="pre">phi_{n+K}</span></tt></p>
+</dd></dl>
+
+<dl class="function">
+<dt id="SdeNonparBayes.visualize_posterior">
+<tt class="descclassname">SdeNonparBayes.</tt><tt class="descname">visualize_posterior</tt><big>(</big><em>post</em><span class="optional">[</span>, <em>truedrift</em><span class="optional">]</span><big>)</big><a class="headerlink" href="#SdeNonparBayes.visualize_posterior" title="Permalink to this definition">¶</a></dt>
+<dd><p>Plot 2r*se wide marginal credibility bands, where <tt class="docutils literal"><span class="pre">post</span></tt> is the result of
+bayes_drift and truedrift the true drift (if known :-) ).</p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction to module SdeNonparBayes</a><ul>
+<li><a class="reference internal" href="#optional-additial-basis-functions">Optional additial basis functions</a></li>
+</ul>
+</li>
+<li><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="schauder.html"
+                        title="previous chapter">Introduction to module Schauder</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/sdenonparbayes.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="schauder.html" title="Introduction to module Schauder"
+             >previous</a> |</li>
+        <li><a href="index.html">itostat 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, M. Schauer.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
