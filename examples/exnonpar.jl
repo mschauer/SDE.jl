@@ -9,6 +9,7 @@ fex1(x) = 4(sin(2pi*x) - x)
 fex2(x) = -4min(x+.5, 0) - 4max(x-.5, 0)
 range(a) = (min(a), max(a))
 
+
 function ex1(L, logN,T, f, B)
 	global y, t
 	srand(42)
@@ -16,16 +17,17 @@ function ex1(L, logN,T, f, B)
 	a = -2
 	b = 2
 	K = 0
-	if (B=="B1"); K = 1;end
-	if (B=="B2"); K = 2;end
+	if (B=="B1"); K = 1;end # Schauder basis with constant
+	if (B=="B2"); K = 2;end # Schauder basis plus two affine component
+				# otherwise Schauder basis
 
 	println("L $L, beta $beta")
 	N = 10^logN
 	dt = T/N
-	t = linspace(0.,T,N)
+	
 	y = euler(0, 0.5(b+a), (t,x)-> f(x), (t,x) -> 1, T/N, dW1(T, N))
 
-	t = [0,cumsum(t)]
+	
 	if (B == "B1")
 		truec = fe_transfB1(x-> f(x), a,b, L)
 	elseif (B == "B2")
@@ -34,9 +36,7 @@ function ex1(L, logN,T, f, B)
 		truec = fe_transf(x-> f(x), a,b, L)
 
 	end
-	println("drift f.e. coefficients",truec')
-	#pickup!(coeff)
-	#println("drift finger coefficients",coeff[finger_pm(L)]')
+	println("true drift f.e. coefficients",truec')
 
 	println("range y $(range(y))")
 

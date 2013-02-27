@@ -1,5 +1,4 @@
 require("Itostat")
-#require("test")
 using Diffusion
 
 using Test
@@ -7,7 +6,7 @@ using Test
 @test brown1(3,2,1) == [3.0]
 @test length(brown1(3,4,2)) == 2
 
-#brown1(0,2,5) sim N(0, 2)
+#test brown1(0,2,5)[end] sim N(0, 2)
 
 #tests with alpha 0.01
 r = 2.576
@@ -16,7 +15,7 @@ n = 1000
 varmu(x, mu) = dot(x-mu, x-mu)/length(x)
 var0(x) = dot(x, x)/length(x)
 
-#testing mean and variance of Brownian motion sampled at view points
+#testing mean and variance of Brownian motion sampled at few points
 @test abs(mean([brown1(0,2,5)[end] for i in 1:n])) < r*sqrt(2/n)
 chiupper = 1118.95 #upper 0.005 percentile for n = 1000
 chilower = 888.56 #lower 0.005 percentile for n = 1000
