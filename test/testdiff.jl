@@ -1,4 +1,4 @@
-require("Itostat")
+require("SDE")
 using Diffusion
 
 using Test

@@ -1,5 +1,5 @@
-Itostat package
-===============
+Julia package SDE.jl 
+====================
 
 Layout
 ------

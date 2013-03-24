@@ -1,4 +1,4 @@
-require("Itostat")
+require("SDE")
 using Schauder
 using Diffusion
 using SdeNonparBayes
