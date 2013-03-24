@@ -1,9 +1,10 @@
-function issquare(a::Matrix)
-	 size(a,2) == size(a,1)
-end
+module Lyap
+export lyap, syl
 
-
-#%  .. function:: lyap
+#%  .. currentmodule:: Lyap
+#%    
+#%  Introduction to module Lyap
+#%  ----------------------------
 #%        
 #%   
 #%    DESCRIPTION
@@ -35,7 +36,39 @@ end
 #%   
 #%    SEE ALSO
 #%         atxpxa in ORACLS, strsyl, dtrsyl in LAPACK, lyap in GNU Octave
+#%  
+#%  
+#%  
 
+#%  Reference 
+#%  ---------
+#%  
+#%  .. function:: issquare(a)
+#%               
+#%  	Checks if matrix ``a`` is square.
+#%  	
+
+
+function issquare(a::Matrix)
+	 size(a,2) == size(a,1)
+end
+
+
+#%  .. function:: lyap(a, cc)
+#%  
+#%         Solves the real matrix equation A'X + XA = C, where A and C are
+#%         constant matrices of dimension n x n with C=C'.  The matrix A
+#%         is transformed into upper Schur form and the transformed system
+#%         is solved by back substitution.  The option is provided to input
+#%         the Schur form directly and bypass the Schur decomposition.
+#%         This equation is also know as continous Lyapunov equation.
+#%         
+#%         The method of Bartels and Stewart is used. 
+#%         The system is first reduced such that A is in upper real schur
+#%         form. The resulting triangular system is solved via back-substitution.
+#%         Has a unique solution, if A and -A have no common eigenvalues, which is guaranteed
+#%         if A is stable (and the real part of each eigenvalue is negative).
+#%  
 
 function lyap (a, cc)
 	assert(issquare(a))
@@ -118,8 +151,11 @@ function lyap (a, cc)
 end
 
 
-# Solves a'*x + x*a = C, where C is symmetric and a is in upper real schur form.
-# via back substitution
+#%  .. function:: symslv(a, c) 
+#%               
+#%      Solves ``A'*x + x*A = C``, where ``C`` is symmetric and ``A`` is in upper real schur form.
+#%      via back substitution
+#%  
 
 function symslv(a, c) 
 	t = similar(a, 4,4)
@@ -254,11 +290,12 @@ end
 
 
 
-#%  .. function:: syl
+#%  .. function:: syl(a, b, c)
 #%               
-#%  	Solves the Sylvester equation AX + XB = C, where C is symmetric and 
-#%  	A and -B have no common eigenvalues using (inefficient)
+#%  	Solves the Sylvester equation ``AX + XB = C``, where ``C`` is symmetric and 
+#%  	``A`` and ``-B`` have no common eigenvalues using (inefficient)
 #%	algebraic approach via the Kronecker product, see http://en.wikipedia.org/wiki/Sylvester_equation
+#%  
 
 function syl(a, b, c)
 	assert(issquare(a))
@@ -273,4 +310,4 @@ end
 
 
 
-
+end

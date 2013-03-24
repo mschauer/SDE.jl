@@ -14,6 +14,9 @@ Contents:
    diffusion
    schauder
    sdenonparbayes
+   lyap
+   randm
+   linproc
 
 
 Indices and tables

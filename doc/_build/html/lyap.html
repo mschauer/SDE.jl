@@ -1,0 +1,192 @@
+
+
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Transitional//EN"
+  "http://www.w3.org/TR/xhtml1/DTD/xhtml1-transitional.dtd">
+
+
+<html xmlns="http://www.w3.org/1999/xhtml">
+  <head>
+    <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
+    
+    <title>Introduction to lyap.jl &mdash; SDE 0.0.1 documentation</title>
+    
+    <link rel="stylesheet" href="_static/default.css" type="text/css" />
+    <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
+    
+    <script type="text/javascript">
+      var DOCUMENTATION_OPTIONS = {
+        URL_ROOT:    '',
+        VERSION:     '0.0.1',
+        COLLAPSE_INDEX: false,
+        FILE_SUFFIX: '.html',
+        HAS_SOURCE:  true
+      };
+    </script>
+    <script type="text/javascript" src="_static/jquery.js"></script>
+    <script type="text/javascript" src="_static/underscore.js"></script>
+    <script type="text/javascript" src="_static/doctools.js"></script>
+    <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
+    <link rel="top" title="SDE 0.0.1 documentation" href="index.html" />
+    <link rel="next" title="Introduction to module Randm" href="randm.html" />
+    <link rel="prev" title="Introduction to module SdeNonparBayes" href="sdenonparbayes.html" /> 
+  </head>
+  <body>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             accesskey="I">index</a></li>
+        <li class="right" >
+          <a href="randm.html" title="Introduction to module Randm"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
+          <a href="sdenonparbayes.html" title="Introduction to module SdeNonparBayes"
+             accesskey="P">previous</a> |</li>
+        <li><a href="index.html">SDE 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>  
+
+    <div class="document">
+      <div class="documentwrapper">
+        <div class="bodywrapper">
+          <div class="body">
+            
+  <div class="section" id="introduction-to-lyap-jl">
+<h1>Introduction to lyap.jl<a class="headerlink" href="#introduction-to-lyap-jl" title="Permalink to this headline">¶</a></h1>
+<blockquote>
+<div><dl class="docutils">
+<dt>DESCRIPTION</dt>
+<dd><p class="first">Solves the real matrix equation A&#8217;X + XA = C, where A and C are
+constant matrices of dimension n x n with C=C&#8217;.  The matrix A
+is transformed into upper Schur form and the transformed system
+is solved by back substitution.  The option is provided to input
+the Schur form directly and bypass the Schur decomposition.
+This equation is also know as continous Lyapunov equation.</p>
+<p class="last">The method of Bartels and Stewart is used.
+The system is first reduced such that A is in upper real schur
+form. The resulting triangular system is solved via back-substitution.
+Has a unique solution, if A and -A have no common eigenvalues, which is guaranteed
+if A is stable (and the real part of each eigenvalue is negative).</p>
+</dd>
+<dt>HISTORY</dt>
+<dd>The classic ACM algorithm from Bartels and Stewart was implemented E. Armstrong
+as part of ORACLS &#8211; optimal regulator algorithms for the control of linear systems.
+The implementation from the nasa cosmic archive is reported to be in the
+public domain, under the terms of Title 17, Chapter 1,
+Section 105 of the US Code. This is rather direct translation of forementioned
+implementation into Julia, put under MIT licence as Julia.</dd>
+<dt>REFERENCES</dt>
+<dd><ul class="first last simple">
+<li>Bartels, R.H.; and Stewart, G.W.: Algorithm 432 - Solution of
+the Matrix Equation AX + XB = C.  Commun. ACM, vol. 15, no. 9,
+Sept. 1972, pp. 820-826.</li>
+</ul>
+</dd>
+<dt>SEE ALSO</dt>
+<dd>atxpxa in ORACLS, strsyl, dtrsyl in LAPACK, lyap in GNU Octave</dd>
+</dl>
+</div></blockquote>
+</div>
+<div class="section" id="reference">
+<h1>Reference<a class="headerlink" href="#reference" title="Permalink to this headline">¶</a></h1>
+<dl class="function">
+<dt id="Lyap.issquare">
+<tt class="descclassname">Lyap.</tt><tt class="descname">issquare</tt><big>(</big><em>a</em><big>)</big><a class="headerlink" href="#Lyap.issquare" title="Permalink to this definition">¶</a></dt>
+<dd><p>Checks if matrix <tt class="docutils literal"><span class="pre">a</span></tt> is square.</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Lyap.lyap">
+<tt class="descclassname">Lyap.</tt><tt class="descname">lyap</tt><big>(</big><em>a</em>, <em>cc</em><big>)</big><a class="headerlink" href="#Lyap.lyap" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the real matrix equation A&#8217;X + XA = C, where A and C are
+constant matrices of dimension n x n with C=C&#8217;.  The matrix A
+is transformed into upper Schur form and the transformed system
+is solved by back substitution.  The option is provided to input
+the Schur form directly and bypass the Schur decomposition.
+This equation is also know as continous Lyapunov equation.</p>
+<p>The method of Bartels and Stewart is used.
+The system is first reduced such that A is in upper real schur
+form. The resulting triangular system is solved via back-substitution.
+Has a unique solution, if A and -A have no common eigenvalues, which is guaranteed
+if A is stable (and the real part of each eigenvalue is negative).</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Lyap.symslv">
+<tt class="descclassname">Lyap.</tt><tt class="descname">symslv</tt><big>(</big><em>a</em>, <em>c</em><big>)</big><a class="headerlink" href="#Lyap.symslv" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves <tt class="docutils literal"><span class="pre">A'*x</span> <span class="pre">+</span> <span class="pre">x*A</span> <span class="pre">=</span> <span class="pre">C</span></tt>, where <tt class="docutils literal"><span class="pre">C</span></tt> is symmetric and <tt class="docutils literal"><span class="pre">A</span></tt> is in upper real schur form.
+via back substitution</p>
+</dd></dl>
+
+<dl class="function">
+<dt id="Lyap.syl">
+<tt class="descclassname">Lyap.</tt><tt class="descname">syl</tt><big>(</big><em>a</em>, <em>b</em>, <em>c</em><big>)</big><a class="headerlink" href="#Lyap.syl" title="Permalink to this definition">¶</a></dt>
+<dd><p>Solves the Sylvester equation <tt class="docutils literal"><span class="pre">AX</span> <span class="pre">+</span> <span class="pre">XB</span> <span class="pre">=</span> <span class="pre">C</span></tt>, where <tt class="docutils literal"><span class="pre">C</span></tt> is symmetric and
+<tt class="docutils literal"><span class="pre">A</span></tt> and <tt class="docutils literal"><span class="pre">-B</span></tt> have no common eigenvalues using (inefficient)
+algebraic approach via the Kronecker product, see <a class="reference external" href="http://en.wikipedia.org/wiki/Sylvester_equation">http://en.wikipedia.org/wiki/Sylvester_equation</a></p>
+</dd></dl>
+
+</div>
+
+
+          </div>
+        </div>
+      </div>
+      <div class="sphinxsidebar">
+        <div class="sphinxsidebarwrapper">
+  <h3><a href="index.html">Table Of Contents</a></h3>
+  <ul>
+<li><a class="reference internal" href="#">Introduction to lyap.jl</a></li>
+<li><a class="reference internal" href="#reference">Reference</a></li>
+</ul>
+
+  <h4>Previous topic</h4>
+  <p class="topless"><a href="sdenonparbayes.html"
+                        title="previous chapter">Introduction to module SdeNonparBayes</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="randm.html"
+                        title="next chapter">Introduction to module Randm</a></p>
+  <h3>This Page</h3>
+  <ul class="this-page-menu">
+    <li><a href="_sources/lyap.txt"
+           rel="nofollow">Show Source</a></li>
+  </ul>
+<div id="searchbox" style="display: none">
+  <h3>Quick search</h3>
+    <form class="search" action="search.html" method="get">
+      <input type="text" name="q" />
+      <input type="submit" value="Go" />
+      <input type="hidden" name="check_keywords" value="yes" />
+      <input type="hidden" name="area" value="default" />
+    </form>
+    <p class="searchtip" style="font-size: 90%">
+    Enter search terms or a module, class or function name.
+    </p>
+</div>
+<script type="text/javascript">$('#searchbox').show(0);</script>
+        </div>
+      </div>
+      <div class="clearer"></div>
+    </div>
+    <div class="related">
+      <h3>Navigation</h3>
+      <ul>
+        <li class="right" style="margin-right: 10px">
+          <a href="genindex.html" title="General Index"
+             >index</a></li>
+        <li class="right" >
+          <a href="randm.html" title="Introduction to module Randm"
+             >next</a> |</li>
+        <li class="right" >
+          <a href="sdenonparbayes.html" title="Introduction to module SdeNonparBayes"
+             >previous</a> |</li>
+        <li><a href="index.html">SDE 0.0.1 documentation</a> &raquo;</li> 
+      </ul>
+    </div>
+    <div class="footer">
+        &copy; Copyright 2013, M. Schauer.
+      Created using <a href="http://sphinx.pocoo.org/">Sphinx</a> 1.1.3.
+    </div>
+  </body>
+</html>
