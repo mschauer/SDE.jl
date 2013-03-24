@@ -9,6 +9,10 @@ The package contains the following modules:
 - **SdeNonparBayes**       Nonparametrically estimate the drift of a diffusion
 - **Schauder**             Provides rudimentary finite element methods and Schauder basis for SdeNonparBayes
 
+and additional functionionalities:
+- **lyap.jl**              Computes the solution of the continuous Lyapunov equation, useful for the generation of linear processes
+
+
 Method
 ------
 
