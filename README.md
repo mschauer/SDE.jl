@@ -35,3 +35,8 @@ I did not introduce type definitions for stochastic processes and use vectors/ar
 	dt = diff(t)
 	X = ito(2dt + 2dW1(dt))
 
+More information
+----------------
+
+[See the documentation.](doc/_build/html/)
+
