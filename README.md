@@ -8,9 +8,9 @@ The package contains the following modules:
 - **Diffusion**            Generate Ito processes and diffusions
 - **SdeNonparBayes**       Nonparametrically estimate the drift of a diffusion
 - **Schauder**             Provides rudimentary finite element methods and Schauder basis for SdeNonparBayes
-
-and additional functionionalities:
-- **lyap.jl**              Computes the solution of the continuous Lyapunov equation, useful for the generation of linear processes
+- **Lyap**                 Computes the solution of the continuous Lyapunov equation, useful for the generation of linear processes
+- **Randm**                Random symmetric, positive definite, stable matrix for testing purposes.
+- **LinProc**              Homogeneous vector linear processes with additive noise
 
 
 Method
