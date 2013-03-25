@@ -1,4 +1,4 @@
-# homogenous vector linear processes with additive noise
+# homogeneous vector linear processes with additive noise
 module LinProc
 using randm
 

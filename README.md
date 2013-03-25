@@ -38,5 +38,5 @@ I did not introduce type definitions for stochastic processes and use vectors/ar
 More information
 ----------------
 
-[See the documentation.](doc/_build/html/)
+[See the documentation at sdejl.readthedocs.org.](https://sdejl.readthedocs.org)
 
