@@ -248,8 +248,9 @@ function drop!(xj)
 	xj
 end	
 
-drop = drop!*copy
-pickup = pickup!*copy
+compose(f, g) = x -> f(g(x))
+drop = compose(drop!,copy)
+pickup = compose(pickup!,copy)
 
 
 function dropB1(yj)
