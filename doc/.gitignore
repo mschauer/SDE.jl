@@ -1,4 +1,0 @@
-# ignore generated ReST files,
-*.rst
-# except index.rst which is maintained by hand
-!index.rst

@@ -201,9 +201,10 @@ function drop_SigmaB1!(Sigma)
 end
 
 
+compose(f, g) = x -> f(g(x))
 
-drop_mu = drop_mu!*copy
-drop_Sigma = drop_Sigma!*copy
+drop_mu = compose(drop_mu!,copy)
+drop_Sigma = compose(drop_Sigma!,copy)
 
 
 #%  .. function:: fe_mu(y, L, K)

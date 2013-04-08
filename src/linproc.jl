@@ -1,9 +1,7 @@
 # homogeneous vector linear processes with additive noise
 module LinProc
-using randm
-
-include("lyap.jl")
-
+using Randm
+export H, r
 
 
 #%  .. currentmodule:: LinProc
@@ -27,7 +25,7 @@ include("lyap.jl")
 #%  
 #%  The parameter ``lambda`` is the solution to the Lyapunov equation ``B'lambda + lambda B = -sigma``, see module ``Lyap``, 
 #%  
-#%       ``lambda = lyap(b, -a)``
+#%       ``lambda = lyap(b', -a)``
 #%  
 
 
@@ -56,16 +54,20 @@ function K(h, b, lambda)
 	lambda - phi*lambda*phi'
 end
 
-function I(h, b, lambda)
+function H(h, b, lambda)
 	phim = expm(-h*b)
 	inv(lambda - phim*lambda*phim')
 end
 
 function V(h, v, b, beta)
 	binv = inv(b)
-	phim = exp(-h*b)
-	phim*v + (binv - phim * binv) * beta
+	phim = expm(-h*b)
+	phim*v + phim * binv * beta - binv * beta 
 end
+#	binv = inv(B)
+#	phim = expm(-h*B)
+#	vt =  phim*( v) + phim * binv * beta -binv*beta 
+
 
 #%  .. function:: r(h, x, v, b, beta, lambda)
 #%               
@@ -75,7 +77,7 @@ end
   
 
 function r(h, x, v, b, beta, lambda)
-	I(h, b, lambda)*(x - V(h, v, b, beta))
+	H(h, b, lambda)*(x - V(h, v, b, beta))
 end
 
 #%  .. function:: Bstar(T, v, b, beta, a, lambda)
@@ -84,7 +86,7 @@ end
 #%  	
 
 function Bstar(T, v, b, beta, a, lambda)
-	(t,x) -> B*x + beta + a * I(T-t, b, lambda)*(x - V(T-t, v, b, beta))
+	(t,x) -> B*x + beta + a * H(T-t, b, lambda)*(x - V(T-t, v, b, beta))
 end	
 
 
