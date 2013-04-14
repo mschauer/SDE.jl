@@ -82,10 +82,10 @@ dW(t, d::Integer, n::Integer) = randn(d, n)*sqrt(t/n)
 #%  	Simulate a ``d``-dimensional Wiener differential sampled at
 #%  	time points with distances given by the vector ``dt``		
 #%	
-mulinto(x,y) = (x[:] = x.*y)
+mulinto(x,y) = (x[:] = [x.*y])
 function dW(dt::Vector, d::Integer) 
 	#% scale each row of a randn by sqrt(dt)
-	dw = Base.each_row(x -> mulinto(x, sqrt(dt)), randn(d, length(dt)))
+	dw = mapslices(x -> mulinto(x, sqrt(dt)), randn(d, length(dt)), 2:2)
 	return dw
 end
 
@@ -297,8 +297,9 @@ end
 #%  
 
 #euler: computes the euler approximation of a 
-function euler(t0, u, b, sigma, dt::Vector, dw)
+function euler(t0, u, b, sigma, dt::Vector, dw::Vector)
 	X = zeros(length(dw)+1)
+	
 	X[1] = u
 	t = t0
 	for i in 1:length(dw)
