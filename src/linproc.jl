@@ -1,7 +1,7 @@
 # homogeneous vector linear processes with additive noise
 module LinProc
-using Randm
-export H, r
+#using Randm
+export H, r, Bstar, Bcirc, Bsharp
 
 
 #%  .. currentmodule:: LinProc
@@ -85,9 +85,27 @@ end
 #%  	Returns the drift function of a vector linear process bridge which end at time T in point v.
 #%  	
 
-function Bstar(T, v, b, beta, a, lambda)
-	(t,x) -> B*x + beta + a * H(T-t, b, lambda)*(x - V(T-t, v, b, beta))
+function Bstar(T, v, B, beta, a, lambda)
+	(t,x) -> B*x + beta + a * H(T-t, B, lambda)*(x - V(T-t, v, b, beta))
 end	
+
+#%  .. function:: Bstar(T, v, b, beta, a, lambda)
+#%               
+#%  	Drift for guided proposal derived from a vector linear process bridge which end at time T in point v.
+#%  	
+
+function Bcirc(T, v, b, sigma, B, beta, lambda)
+	(t,x) -> b(t,x) +  sigma(t,x)*(sigma(t,x))' * H(T-t, B, lambda)*(x - V(T-t, v, B, beta))
+end	
+
+
+
+function Bsharp(T, v, b )
+	(t,x) -> b(t,x) + (v-x)/(T-t)
+end
+
+
+
 
 
 end #linproc
