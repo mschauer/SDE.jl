@@ -23,7 +23,7 @@ export H, r, Bstar, Bcirc, Bsharp
 #%  where  :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` and 
 #%  ``p`` is the transition density of ``X``.
 #%  
-#%  The parameter ``lambda`` is the solution to the Lyapunov equation ``B'lambda + lambda B = -sigma``, see module ``Lyap``, 
+#%  The parameter ``lambda`` is the solution to the Lyapunov equation ``B'lambda + lambda B = -a``, see module ``Lyap``, 
 #%  
 #%       ``lambda = lyap(b', -a)``
 #%  
