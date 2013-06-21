@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Introduction to module SdeNonparBayes &mdash; SDE 0.0.1 documentation</title>
+    <title>Introduction to module SdeNonparBayes &mdash; SDE 0.1.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.0.1',
+        VERSION:     '0.1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,8 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="SDE 0.0.1 documentation" href="index.html" />
+    <link rel="top" title="SDE 0.1.0 documentation" href="index.html" />
+    <link rel="next" title="Introduction to lyap.jl" href="lyap.html" />
     <link rel="prev" title="Introduction to module Schauder" href="schauder.html" /> 
   </head>
   <body>
@@ -37,9 +38,12 @@
           <a href="genindex.html" title="General Index"
              accesskey="I">index</a></li>
         <li class="right" >
+          <a href="lyap.html" title="Introduction to lyap.jl"
+             accesskey="N">next</a> |</li>
+        <li class="right" >
           <a href="schauder.html" title="Introduction to module Schauder"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">SDE 0.0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">SDE 0.1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -88,12 +92,12 @@ prior distribution on the coefficients</p>
 <dd><span class="math">\(\phi_1 \dots \phi_n, \max(1-x, 0), \max(x, 0)\)</span></dd>
 </dl>
 <p>To compute <tt class="docutils literal"><span class="pre">mu</span></tt>, use</p>
-<div class="highlight-matlab"><div class="highlight"><pre><span class="n">mu</span> <span class="p">=</span> <span class="n">pickup_mu</span>!<span class="p">(</span><span class="n">fe_mu</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="p">,</span> 0<span class="p">))</span>
+<div class="highlight-matlab"><div class="highlight"><pre><span class="n">mu</span> <span class="p">=</span> <span class="n">pickup_mu</span>!<span class="p">(</span><span class="n">fe_mu</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 <span class="n">mu</span> <span class="p">=</span> <span class="n">fe_muB1</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
 </pre></div>
 </div>
 <p>or</p>
-<div class="highlight-matlab"><div class="highlight"><pre><span class="n">mu</span> <span class="p">=</span> <span class="n">pickup_mu</span>!<span class="p">(</span><span class="n">fe_mu</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="p">,</span> 0<span class="p">))</span>
+<div class="highlight-matlab"><div class="highlight"><pre><span class="n">mu</span> <span class="p">=</span> <span class="n">pickup_mu</span>!<span class="p">(</span><span class="n">fe_mu</span><span class="p">(</span><span class="n">y</span><span class="p">,</span><span class="n">L</span><span class="p">,</span> <span class="mi">0</span><span class="p">))</span>
 <span class="n">mu</span> <span class="p">=</span> <span class="n">fe_muB2</span><span class="p">(</span><span class="n">mu</span><span class="p">,</span> <span class="n">y</span><span class="p">);</span>
 </pre></div>
 </div>
@@ -192,6 +196,9 @@ bayes_drift and truedrift the true drift (if known :-) ).</p>
   <h4>Previous topic</h4>
   <p class="topless"><a href="schauder.html"
                         title="previous chapter">Introduction to module Schauder</a></p>
+  <h4>Next topic</h4>
+  <p class="topless"><a href="lyap.html"
+                        title="next chapter">Introduction to lyap.jl</a></p>
   <h3>This Page</h3>
   <ul class="this-page-menu">
     <li><a href="_sources/sdenonparbayes.txt"
@@ -221,9 +228,12 @@ bayes_drift and truedrift the true drift (if known :-) ).</p>
           <a href="genindex.html" title="General Index"
              >index</a></li>
         <li class="right" >
+          <a href="lyap.html" title="Introduction to lyap.jl"
+             >next</a> |</li>
+        <li class="right" >
           <a href="schauder.html" title="Introduction to module Schauder"
              >previous</a> |</li>
-        <li><a href="index.html">SDE 0.0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">SDE 0.1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">

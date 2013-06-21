@@ -8,7 +8,7 @@
   <head>
     <meta http-equiv="Content-Type" content="text/html; charset=utf-8" />
     
-    <title>Introduction to module Schauder &mdash; SDE 0.0.1 documentation</title>
+    <title>Introduction to module Schauder &mdash; SDE 0.1.0 documentation</title>
     
     <link rel="stylesheet" href="_static/default.css" type="text/css" />
     <link rel="stylesheet" href="_static/pygments.css" type="text/css" />
@@ -16,7 +16,7 @@
     <script type="text/javascript">
       var DOCUMENTATION_OPTIONS = {
         URL_ROOT:    '',
-        VERSION:     '0.0.1',
+        VERSION:     '0.1.0',
         COLLAPSE_INDEX: false,
         FILE_SUFFIX: '.html',
         HAS_SOURCE:  true
@@ -26,7 +26,7 @@
     <script type="text/javascript" src="_static/underscore.js"></script>
     <script type="text/javascript" src="_static/doctools.js"></script>
     <script type="text/javascript" src="http://cdn.mathjax.org/mathjax/latest/MathJax.js?config=TeX-AMS-MML_HTMLorMML"></script>
-    <link rel="top" title="SDE 0.0.1 documentation" href="index.html" />
+    <link rel="top" title="SDE 0.1.0 documentation" href="index.html" />
     <link rel="next" title="Introduction to module SdeNonparBayes" href="sdenonparbayes.html" />
     <link rel="prev" title="Introduction to module Diffusion" href="diffusion.html" /> 
   </head>
@@ -43,7 +43,7 @@
         <li class="right" >
           <a href="diffusion.html" title="Introduction to module Diffusion"
              accesskey="P">previous</a> |</li>
-        <li><a href="index.html">SDE 0.0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">SDE 0.1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>  
 
@@ -71,8 +71,8 @@ from <tt class="docutils literal"><span class="pre">n</span> <span class="pre">=
 <div><span class="math">\(\psi_{2j}(x) = hat(nx-j + 1/2)\)</span>  for <span class="math">\(j = 1 \dots 2^{L-1}-1\)</span></div></blockquote>
 <p>Note that these coefficients are easy to find for the finite element basis, just</p>
 <div class="highlight-matlab"><div class="highlight"><pre><span class="k">function</span><span class="w"> </span><span class="nf">fe_transf</span><span class="p">(</span>f, a,b, L<span class="p">)</span><span class="w"></span>
-<span class="w">    </span><span class="n">n</span> <span class="p">=</span> 2^<span class="n">L</span><span class="o">-</span>1
-    <span class="k">return</span> <span class="n">map</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="p">(</span>1<span class="p">:</span><span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">n</span><span class="o">+</span>1<span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">b</span><span class="o">-</span><span class="n">a</span><span class="p">))</span>
+<span class="w">    </span><span class="n">n</span> <span class="p">=</span> <span class="mi">2</span>^<span class="n">L</span><span class="o">-</span><span class="mi">1</span>
+    <span class="k">return</span> <span class="n">map</span><span class="p">(</span><span class="n">f</span><span class="p">,</span> <span class="n">a</span> <span class="o">+</span> <span class="p">(</span><span class="mi">1</span><span class="p">:</span><span class="n">n</span><span class="p">)</span><span class="o">/</span><span class="p">(</span><span class="n">n</span><span class="o">+</span><span class="mi">1</span><span class="p">)</span><span class="o">*</span><span class="p">(</span><span class="n">b</span><span class="o">-</span><span class="n">a</span><span class="p">))</span>
 <span class="k">end</span>
 </pre></div>
 </div>
@@ -89,13 +89,13 @@ from <tt class="docutils literal"><span class="pre">n</span> <span class="pre">=
 <blockquote>
 <div><span class="math">\(\phi_2(x) = \psi_1(x) + 2\psi_2(x) + \psi_2(x)\)</span></div></blockquote>
 <p>This can be implemented inplace (see <tt class="docutils literal"><span class="pre">pickup()</span></tt>), and is used throughout.</p>
-<div class="highlight-matlab"><div class="highlight"><pre><span class="k">for</span> <span class="n">l</span> <span class="n">in</span> 1<span class="p">:</span><span class="n">L</span><span class="o">-</span>1
-        <span class="n">b</span> <span class="p">=</span> <span class="n">sub</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> 2^<span class="n">l</span><span class="p">:</span>2^<span class="n">l</span><span class="p">:</span><span class="n">n</span><span class="p">)</span>
-        <span class="n">b</span><span class="p">[:]</span> <span class="o">*</span><span class="p">=</span> 0<span class="p">.</span>5
-        <span class="n">a</span> <span class="p">=</span> <span class="n">sub</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> 2^<span class="p">(</span><span class="n">l</span><span class="o">-</span>1<span class="p">):</span>2^<span class="n">l</span><span class="p">:</span><span class="n">n</span><span class="o">-</span>2^<span class="p">(</span><span class="n">l</span><span class="o">-</span>1<span class="p">))</span>
+<div class="highlight-matlab"><div class="highlight"><pre><span class="k">for</span> <span class="n">l</span> <span class="n">in</span> <span class="mi">1</span><span class="p">:</span><span class="n">L</span><span class="o">-</span><span class="mi">1</span>
+        <span class="n">b</span> <span class="p">=</span> <span class="n">sub</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="mi">2</span>^<span class="n">l</span><span class="p">:</span><span class="mi">2</span>^<span class="n">l</span><span class="p">:</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">b</span><span class="p">[:]</span> <span class="o">*</span><span class="p">=</span> <span class="mf">0.5</span>
+        <span class="n">a</span> <span class="p">=</span> <span class="n">sub</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="mi">2</span>^<span class="p">(</span><span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span><span class="mi">2</span>^<span class="n">l</span><span class="p">:</span><span class="n">n</span><span class="o">-</span><span class="mi">2</span>^<span class="p">(</span><span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">))</span>
         <span class="n">a</span><span class="p">[:]</span> <span class="o">-</span><span class="p">=</span> <span class="n">b</span><span class="p">[:]</span>
-        <span class="n">a</span> <span class="p">=</span> <span class="n">sub</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> 2^<span class="n">l</span><span class="o">+</span>2^<span class="p">(</span><span class="n">l</span><span class="o">-</span>1<span class="p">):</span>2^<span class="n">l</span><span class="p">:</span><span class="n">n</span><span class="p">)</span>
-        <span class="n">a</span><span class="p">[:]</span> <span class="o">-</span><span class="p">=</span> <span class="n">b</span><span class="p">[</span>1<span class="p">:</span><span class="nb">length</span><span class="p">(</span><span class="n">a</span><span class="p">)]</span>
+        <span class="n">a</span> <span class="p">=</span> <span class="n">sub</span><span class="p">(</span><span class="n">c</span><span class="p">,</span> <span class="mi">2</span>^<span class="n">l</span><span class="o">+</span><span class="mi">2</span>^<span class="p">(</span><span class="n">l</span><span class="o">-</span><span class="mi">1</span><span class="p">):</span><span class="mi">2</span>^<span class="n">l</span><span class="p">:</span><span class="n">n</span><span class="p">)</span>
+        <span class="n">a</span><span class="p">[:]</span> <span class="o">-</span><span class="p">=</span> <span class="n">b</span><span class="p">[</span><span class="mi">1</span><span class="p">:</span><span class="nb">length</span><span class="p">(</span><span class="n">a</span><span class="p">)]</span>
 <span class="k">end</span>
 </pre></div>
 </div>
@@ -217,7 +217,7 @@ and the number of additional elements <tt class="docutils literal"><span class="
         <li class="right" >
           <a href="diffusion.html" title="Introduction to module Diffusion"
              >previous</a> |</li>
-        <li><a href="index.html">SDE 0.0.1 documentation</a> &raquo;</li> 
+        <li><a href="index.html">SDE 0.1.0 documentation</a> &raquo;</li> 
       </ul>
     </div>
     <div class="footer">
