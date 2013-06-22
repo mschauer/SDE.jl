@@ -1,6 +1,7 @@
 require("SDE")
 using Schauder
-using Test
+using SdeNonparBayes
+using Base.Test
 
 ## procudes the same as computing mu' and then performing pick_up(mu).
 function pickedup_mu(y, L)
@@ -40,20 +41,21 @@ th2 = copy(th1)
 pickup!(th2)
 
 
-mu1 = fe_mu(z,L, 0)
-mu1b = fe_mu_c(z,L, 0)
-mu2 = pickedup_mu(z, L)
-mu2b = pickup_mu!(copy(mu1))
+mu1 = SdeNonparBayes.fe_mu(z,L, 0)
+mu1b = SdeNonparBayes.fe_mu_c(z,L, 0)
+#mu2 = pickedup_mu(z, L)
+mu2 = SdeNonparBayes.pickup_mu!(SdeNonparBayes.fe_mu(z,L, 0))
+mu2b = SdeNonparBayes.pickup_mu!(copy(mu1))
 
 tic()
-Sigma1 = fe_Sigma_at(z,0.1, L)
+Sigma1 = SdeNonparBayes.fe_Sigma_at(z,0.1, L)
 toc()
 tic()
-Sigma1b = fe_Sigma_dot(z,0.1, L)
+Sigma1b = SdeNonparBayes.fe_Sigma_dot(z,0.1, L)
 toc()
 
 Sigma2 = copy(Sigma1)
-Sigma2 = pickup_Sigma!(Sigma2)
+Sigma2 = SdeNonparBayes.pickup_Sigma!(Sigma2)
 
 println([th1 th2 mu1 mu1b mu2 mu2b])
 

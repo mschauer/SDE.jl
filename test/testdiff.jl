@@ -1,7 +1,7 @@
 require("SDE")
 using Diffusion
 
-using Test
+using Base.Test
 
 @test brown1(3,2,1) == [3.0]
 @test length(brown1(3,4,2)) == 2

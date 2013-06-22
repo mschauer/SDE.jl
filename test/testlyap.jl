@@ -1,58 +1,81 @@
+require("SDE")
+using Lyap
 
 # test lyap with random matrices nmax times for each dimension in dims and sum the difference 
 # in norms
-function testlyap(dims, nmax)
+function testlyap(dims, n)
 	tic()
 	sum = 0
 	for d in dims
-		print(d, " ")
-		for n = 1:nmax
+		print("dims = $dims, n = $n")
+		for k = 1:n
 			# random symmetric matrix with some zeros
 			x = randn(d, d) .* randbool(d,d)
 			a = x' + x
 
 			# random stable/hurwitz matrix
+			a2 = a
+			while true
 			x = randn(d, d) .* randbool(d,d)
 			a2 = x'*x
+			if(!isposdef(a2))
+				print(".")
+			else 
+				break
+			end #test for positive definitesness
+			
+			
+			end
 			drei =	[ i<j ? 1 : 0 for i in 1:d, j in 1:d]
 			y = randn(d, d) .* randbool(d,d)
 			
-			if(!isposdef(a2)); break;end #test for positive definitesness
-		
+			
 			b = drei.*y - drei'.*y' - a2
 #			print(eigen(b))
-			l = atxpxa(b, a)
+			l = lyap(b, a)
 			sum += norm(b'*l + l*b - a)
 		end
 	end	
-	println("\n Total deviation:", sum)
+	println("\nTotal deviation:", sum)
 	toc()
 end
 
-function testsyl(dims, nmax)
+# test syl with random matrices n times for each dimension in dims and sum the difference 
+# in norms
+function testsyl(dims, n)
 	tic()
 	sum = 0
 	for d in dims
-		print(d, " ")
-		for n = 1:nmax
+		print("dims = $dims, n = $n")
+		for k = 1:n
 			# random symmetric matrix
 			x = randn(d, d) .* randbool(d,d)
 			a = x'+x
-			if(!isposdef(a)); break;end #test
 			# random stable/hurwitz matrix
+			a2 = a
+			while true
 			x = randn(d, d) .* randbool(d,d)
 			a2 = x'*x
+			if(!isposdef(a2))
+				print(".")
+			else 
+				break
+			end #test for positive definitesness
+			
+			
+			end
+			
+			
 			drei =	[ i<j ? 1 : 0 for i in 1:d, j in 1:d]
 			y = randn(d, d) .* randbool(d,d)
 			
-			if(!isposdef(a2)); break;end #test
-		
+				
 			b = drei.*y - drei'.*y' - a2
 			l = syl(b', b, a)
 			sum += norm(b'*l + l*b - a)
 		end
 	end	
-	println("\n Total deviation:", sum)
+	println("\nTotal deviation:", sum)
 	toc()
 end
 

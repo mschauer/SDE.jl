@@ -1,10 +1,11 @@
 # test linproc.jl
+require("SDE")
 
 using Cubature
 using LinProc
 using Randm
 using Lyap
-using Test
+using Base.Test
 
 d= 4
 # B = [-10.3268 .67701   -1.85162;
@@ -91,7 +92,7 @@ r3 = varr3(T-t, x, v, B, beta, lambda)
 println(r1)
 println(r2)
 println(r3)
-println(v1)
+println(v)
 
 mu1 = mu(h, x, B, beta)
 mu2 = varmu(h, x, B, beta)

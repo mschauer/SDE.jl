@@ -108,7 +108,7 @@ order(a,b) = a > b ? (b,a): (a,b)
 
 
 function ilogbi(n::Integer)
-	Base.ilogb(float(n))
+	Base.exponent(float(n))
 end
 
 
@@ -178,7 +178,7 @@ function finger_pm(L, K)
 	end
 	
 
-	if has(order_tbl, (L,K))
+	if haskey(order_tbl, (L,K))
                pm = order_tbl[(L,K)]
 	else
 		pm = sortperm(number(L,K))
