@@ -2,7 +2,7 @@ module SdeNonparBayes
 export ex1, fex1, fex2, bayes_drift, test1, levelK, finger_pm, visualize_posterior
 using Schauder
 using Diffusion
-using Winston
+#using Winston
 
 #%  .. currentmodule:: SdeNonparBayes
 #%    
@@ -539,6 +539,7 @@ end
 #%  	
 #%  	Plot 2r*se wide marginal credibility bands, where ``post`` is the result of 
 #%  	bayes_drift and truedrift the true drift (if known :-) ).
+#% 
 
 
 function visualize_posterior(post, truedrift, r)

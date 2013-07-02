@@ -14,7 +14,7 @@ export H, r, Bstar, Bcirc, Bsharp
 #%  
 #%  	:math:`dX_t = B X_t + \beta + \sigma d W_t`
 #%  
-#%  where ``b`` is a stable matrix and ``beta`` a vector, 
+#%  where ``B`` is a stable matrix and ``beta`` a vector, 
 #%  and conditional vector linear processes (Ornstein--Uhlenbeck bridges so to say)
 #%  ending at time ``T`` in point ``v``,
 #%  
@@ -89,7 +89,7 @@ function Bstar(T, v, B, beta, a, lambda)
 	(t,x) -> B*x + beta + a * H(T-t, B, lambda)*(x - V(T-t, v, b, beta))
 end	
 
-#%  .. function:: Bstar(T, v, b, beta, a, lambda)
+#%  .. function:: Bcirc(T, v, b, beta, a, lambda)
 #%               
 #%  	Drift for guided proposal derived from a vector linear process bridge which end at time T in point v.
 #%  	

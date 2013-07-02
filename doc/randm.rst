@@ -9,10 +9,6 @@ the matrices are drawn from.
 Reference 
 ---------
 
-.. function:: randsym(d)
-             
-	Random symmetric matrix.
-	
 .. function:: randposdef(d)
              
 	Random positive definite matrix of dimension ``d``.
@@ -21,3 +17,15 @@ Reference
              
 	Random stable matrix (matrix with eigenvalues with negative real part) with
 	dimension ``d``.
+.. function:: randunitary(d)
+             
+	Random unitary matrix of dimension ``d``.
+	
+.. function:: randorth(d)
+             
+	Orthogonal matrix drawn according to the Haar measure on the group of orthogonal matrices.
+	
+.. function:: randnormal(d) 
+             
+	Random normal matrix.
+	

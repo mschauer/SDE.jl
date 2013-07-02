@@ -16,9 +16,9 @@ ending at time ``T`` in point ``v``,
 where  :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` and 
 ``p`` is the transition density of ``X``.
 
-The parameter ``lambda`` is the solution to the Lyapunov equation ``B'lambda + lambda B = -sigma``, see module ``Lyap``, 
+The parameter ``lambda`` is the solution to the Lyapunov equation ``B'lambda + lambda B = -a``, see module ``Lyap``, 
 
-     ``lambda = lyap(b, -a)``
+     ``lambda = lyap(b', -a)``
 
 
 Reference 
@@ -36,4 +36,8 @@ Reference
 .. function:: Bstar(T, v, b, beta, a, lambda)
              
 	Returns the drift function of a vector linear process bridge which end at time T in point v.
+	
+.. function:: Bstar(T, v, b, beta, a, lambda)
+             
+	Drift for guided proposal derived from a vector linear process bridge which end at time T in point v.
 	

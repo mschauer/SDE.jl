@@ -1,6 +1,6 @@
 .. currentmodule:: Lyap
   
-Introduction to lyap.jl
+Introduction to module Lyap
 ----------------------------
       
  
@@ -10,7 +10,7 @@ Introduction to lyap.jl
        is transformed into upper Schur form and the transformed system
        is solved by back substitution.  The option is provided to input
        the Schur form directly and bypass the Schur decomposition.
-       This equation is also know as continous Lyapunov equation.
+       This equation is also know as continuous Lyapunov equation.
        
        The method of Bartels and Stewart is used. 
        The system is first reduced such that A is in upper real schur
@@ -50,7 +50,7 @@ Reference
        is transformed into upper Schur form and the transformed system
        is solved by back substitution.  The option is provided to input
        the Schur form directly and bypass the Schur decomposition.
-       This equation is also know as continous Lyapunov equation.
+       This equation is also know as continuous Lyapunov equation.
        
        The method of Bartels and Stewart is used. 
        The system is first reduced such that A is in upper real schur
