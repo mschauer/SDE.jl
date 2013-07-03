@@ -1,7 +1,7 @@
 # homogeneous vector linear processes with additive noise
 module LinProc
 #using Randm
-export H, r, Bstar, Bcirc, Bsharp
+export H, r, p, Bstar, Bcirc, Bsharp
 
 
 #%  .. currentmodule:: LinProc
@@ -23,12 +23,12 @@ export H, r, Bstar, Bcirc, Bsharp
 #%  where  :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` and 
 #%  ``p`` is the transition density of ``X``.
 #%  
-#%  The parameter ``lambda`` is the solution to the Lyapunov equation ``B'lambda + lambda B = -a``, see module ``Lyap``, 
+#%  The parameter ``lambda`` is the solution to the Lyapunov equation ``B lambda + lambda B' = -a``, see module ``Lyap``, 
 #%  
 #%       ``lambda = lyap(b', -a)``
 #%  
 
-
+#l = lyap(B',-A); B*l + l*B' + A = 0
 
 #%  
 #%  Reference 
@@ -105,6 +105,27 @@ function Bsharp(T, v, b )
 end
 
 
+#%  .. function:: lp(h, x, y, b, beta, lambda)
+#%               
+#%  	Returns :math:`log p(t,x; T, y)`, the log transition density of the linear process, h = T - t 
+#%  
+function lp(h, x, y, b, beta, lambda)
+	z = (x - V(h, y, b, beta))
+	(-1/2*length(x)*log(2pi) - 0.5*log(det(K(h,b, lambda))) + 0.5*z'*H(h, b, lambda)*z) 
+end
+#%  .. function:: p0(h, x, y,  mu, gamma)
+#%               
+#%  	Returns :math:`log p(t,x; T, y)`, the transition density of a Brownian motion with drift mu and diffusion a=inv(gamma), h = T - t 
+#%  
+function lp0(h, x, y, mu, gamma)
+          (-1/2*length(x)*log(2pi*h) + 0.5*log(det(gamma))  -0.5*(y-x-h*mu)'*gamma*(y-x-h*mu)/h)
+         
+end
+
+function sample_p0(h, x, mu, l) #l = chol(gamma)
+	z = randn(length(x))
+	x + l*z*sqrt(h) + h*mu
+end
 
 
 

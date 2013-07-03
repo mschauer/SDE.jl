@@ -52,7 +52,7 @@ function scalar(x)
 	x[1]
 end
 
-function likelixcirc(t, T, v, Xcirc, b, B, beta, lambda)
+function likelixcirc(t, T, v, Xcirc, b, a,  B, beta, lambda)
 	
 	function L(s,x)
 		R = LinProc.H(T-s, B, lambda)*(x - LinProc.V(T-s, v, B, beta))
@@ -70,58 +70,6 @@ function likelixcirc(t, T, v, Xcirc, b, B, beta, lambda)
 end
 
 
-#th = 1.7
-#b has root at [-sqrt(th), 0]
-#linearization of (th - x[1]*x[1])*x[1] in -sqrt(th): y  =  -2*th*x[1]-2*th^(3/2)
-th = 1.3
-si = 0.1
-si = 0.02
-u = [-sqrt(th), -0.5]
-
-b(s,x) = [x[2], -x[2] + (th - x[1]*x[1])*x[1]]
-Lb(s, x) = [x[2], -x[2] - 2*th*x[1] - 2*th^(3/2)] 
-
-function sigma(s,y)
-	x = copy(y) - [-sqrt(th),0]
-	m = norm(x)
-	if (m <= eps()) return(sqrt(2.0) * 0.5 .* [[1. -1.],[1. 1.]]) end
-	rho = 1 + 5*atan(m)
-	si/m*[[x[2], -x[1]]  [rho*x[1], rho*x[2]]]
-end
-a= (s,x) -> sigma(s,x)*sigma(s,x)'
-
-
-
-print("Generate x")
-
-N = 12000 + 1 #full observations
-T = 5
-T = 5
-Dt = diff(linspace(0., T, N))
-dt = Dt[1]
-DW = randn(2, N-1) .* sqrt(dt)
-x = euler(0.0, u, b, sigma, Dt, DW)
-
-
-#compute range of observations
-R1 = range(x[1,:]) 
- 
-R1 = (R1[1] -0.1*(R1[2]-R1[1]),R1[2] + 0.1*(R1[2]-R1[1]))
-
-R2 = range(x[2,:])
-R2 = (R2[1]  -0.1*(R2[2]-R2[1]), R2[2] + 0.1*(R2[2]-R2[1]))
-
-
-#R2 = (-1.5,-1)
-#R2 = (-0.5,0.5)
-println(".")
-
-
-#Prior variance
-
-s = 20.0
-
-
 function pl(x)
 	p = FramedPlot()
 	setattr(p, "xrange", (-1.5,-1))
@@ -132,6 +80,7 @@ function pl(x)
 
 	p	
 end
+
 function plstep(xt, xd, y, yprop)
 	p = FramedPlot()
 	setattr(p, "xrange", R1)
@@ -165,6 +114,131 @@ function plobs(xt, xd)
 end
 
 
+
+
+#th = 1.7
+#b has root/focus at [-sqrt(th), 0]
+#linearization of (th - x[1]*x[1])*x[1] in -sqrt(th): y  =  -2*th*x[1]-2*th^(3/2)
+th = 1.3
+si = 0.1
+#si = 0.05
+u = [-sqrt(th), -0.5] # start below focus
+d = 2
+zd = zeros(d)
+od = ones(d)
+Id = eye(d)
+
+b(s,x) = [x[2], -x[2] + (th - x[1]*x[1])*x[1]]
+#Lb(s, x) = [x[2], -x[2] - 2*th*x[1] - 2*th^(3/2)] 
+
+B = [0 1; -2*th -1]
+beta = [0, -2*th^(3/2)]
+
+function sigma(s,y)
+	x = copy(y) - [-sqrt(th),0]
+	m = norm(x)
+	if (m <= eps()) return(sqrt(2.0) * 0.5 .* [[1. -1.],[1. 1.]]) end
+	rho = 1 + 5*atan(m)
+	si/m*[[x[2], -x[1]]  [rho*x[1], rho*x[2]]]
+end
+a= (s,x) -> sigma(s,x)*sigma(s,x)'
+
+
+
+println("Compute p(x,y)")
+K = 1E4
+T = 0.8
+v = [-1.3, 0]
+tb(s, x) = B*x + beta
+tsigma(s,x) = sigma(T, v)
+ta(s,x) = tsigma(s, x)*tsigma(s, x)'
+lambda = Lyap.lyap(B', -a(T,v))
+tlambda = Lyap.lyap(B', -a(T,v))
+
+N = 501 #samples
+Dt = diff(linspace(0., T, N))
+dt = Dt[1]
+p = 0
+Z = [1]
+Z0 = [1]
+LL = [1]
+for k in 1:K
+	print("$k\r")
+	DW = randn(2, N-1) .* sqrt(dt)
+	x = norm(v-leading(euler(0.0, u,  b,  sigma, Dt, DW), N))
+	#z = scalar(exp(LinProc.lp0(1E-5,  z, v, zd, Id)))
+	Z = vcat(Z,x) 
+	x = norm(v-leading(euler(0.0, u,  tb,  tsigma, Dt, DW), N))
+ 	Z0 = vcat(Z0,x)
+	if(k < K/10) 
+	
+	 	yy = euler(0.0, u, LinProc.Bcirc(T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
+		ll =  scalar(likelixcirc(0, T, v, yy, b, a, B, beta, lambda))
+		LL = vcat(LL,ll)
+	end
+	
+	#println("x(T) = $(leading(x, N)), kernel(x(T)) = $z")
+end
+function kern(d, h, z)
+         scalar(exp (-1/2*d*log(2pi*h)  -0.5*z^2/h))
+         
+end
+
+function kernel_est(Z, h)
+ M = map(z -> kern(2,h, z),Z)
+ [mean(M), std(M)/sqrt(length(M))]
+end
+h = 1/K^0.9
+pnaiv =  kernel_est(Z , h)	
+p0naiv = kernel_est(Z0, h)
+p0 = scalar(exp(LinProc.lp(T, u, v, B, beta, tlambda)))
+p =  [p0*mean(LL),p0*std(LL)/length(LL) ]
+#mean((Z .< 0.05)/0.05)/ mean((Z0 .< 0.05)/0.05)
+
+println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
+h = 1/K^1.1
+pnaiv =  kernel_est(Z , h)	
+p0naiv = kernel_est(Z0, h)
+println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
+h = 1/K
+pnaiv =  kernel_est(Z , h)	
+p0naiv = kernel_est(Z0, h)
+println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
+
+stop()
+
+
+print("Generate x")
+
+N = 12000 + 1   #full observations
+T = 5		#time span
+T = 4
+Dt = diff(linspace(0., T, N))
+dt = Dt[1]
+DW = randn(2, N-1) .* sqrt(dt)
+x = euler(0.0, u, b, sigma, Dt, DW)
+
+
+#compute range of observations
+R1 = range(x[1,:]) 
+ 
+R1 = (R1[1] -0.1*(R1[2]-R1[1]),R1[2] + 0.1*(R1[2]-R1[1]))
+
+R2 = range(x[2,:])
+R2 = (R2[1]  -0.1*(R2[2]-R2[1]), R2[2] + 0.1*(R2[2]-R2[1]))
+
+
+#R2 = (-1.5,-1)
+#R2 = (-0.5,0.5)
+println(".")
+
+
+#Prior variance
+
+s = 20.0
+
+
+
 L(theta, x, Dt) = ito(-x[2, :] + theta*x[1, :] - x[1, :].^3, diff(x[2, :],2))- 0.5*ito( (-x[2, :] + theta*x[1, :] - x[1, :].^3).^2 , Dt)
 
 #mu(x) = ito(x[1, :], diff(x[2, :],2))/(si^2) - ito(x[1, :].*(- x[2, :] - x[1, :].^3), dt)/(si^2)
@@ -178,8 +252,8 @@ w = W0(x, Dt)  +  1./s^2
 println("th= ", round(m/w,5), "+-", round(1.96*sqrt(1/w), 5))
  
 ###
-M = 6 #number of bridges
-n = 200 #samples each bridge
+M = 5 #number of bridges
+n = 600 #samples each bridge
 xd = x[:, 1:(N-1)/M:end]
 xtrue = x[:, 1:(N-1)/M/n:end]
 
@@ -193,7 +267,7 @@ B = [0 1; -2*th -1]
 beta = [0, -2*th^(3/2)]
 lambda = Lyap.lyap(B', -a(0,v))
 z = eulerv(0.0, u, v,  LinProc.Bcirc(T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
-ll = likelixcirc(0.0, T, v, z, b, B, beta, lambda)
+ll = likelixcirc(0.0, T, v, z, b, a, B, beta, lambda)
 #println(ll)
 #error()
 
@@ -228,8 +302,8 @@ for k = 1:K
 		yy = euler(((m-1)/M)*T, u, LinProc.Bcirc((m/M)*T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
 		yprop[m] = yy
 		if(k == 1) y[m] = yy end 
-		ll =  likelixcirc(((m-1)/M)*T, (m/M)*T, v, yy, b, B, beta, lambda)
-		llold = likelixcirc(((m-1)/M)*T, (m/M)*T, v, y[m], b, B, beta, lambda)
+		ll =  likelixcirc(((m-1)/M)*T, (m/M)*T, v, yy, b, a, B, beta, lambda)
+		llold = likelixcirc(((m-1)/M)*T, (m/M)*T, v, y[m], b, a, B, beta, lambda)
 		#
 		#println(ll)
 		#readline(STDIN)
