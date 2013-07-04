@@ -2,7 +2,7 @@ using Lyap
 #using Diffusion
 require("leading.jl")
 require("linproc.jl")
-srand(4)
+srand(3)
 range(x) = (min(x), max(x))
 
 SV = false #save images?
@@ -56,7 +56,7 @@ function likelixcirc(t, T, v, Xcirc, b, a,  B, beta, lambda)
 	
 	function L(s,x)
 		R = LinProc.H(T-s, B, lambda)*(x - LinProc.V(T-s, v, B, beta))
-	  	return (b(s,x) - B*x - beta)' * R - 0.5 *trace((a(s,x) - a(T,v)) *( -LinProc.H(T-s, B, lambda) - R*R'))
+	  	return (b(s,x) - B*x - beta)' * R + 0.5 *trace((a(s,x) - a(T,v)) *( LinProc.H(T-s, B, lambda) + R*R'))
 	end
 	
 	sum = 0
@@ -125,7 +125,7 @@ end
 #linearization of (th - x[1]*x[1])*x[1] in -sqrt(th): y  =  -2*th*x[1]-2*th^(3/2)
 th = 1.3
 si = 0.1
-#si = 0.05
+# si = 0.05
 u = [-sqrt(th), -0.5] # start below focus
 d = 2
 zd = zeros(d)
@@ -145,24 +145,23 @@ function sigma(s,y)
 	rho = 1 + 5*atan(m)
 	si/m*[[x[2], -x[1]]  [rho*x[1], rho*x[2]]]
 end
+#sigma(s,x) = si*eye(2)
+
 a= (s,x) -> sigma(s,x)*sigma(s,x)'
 
 
-
-println("Compute p(x,y)")
-K = 2E4
+K = 4E4
+println("Compute p(x,y) ($K iterations)")
 T = 0.8
 v = [-1.3, 0]
 tb(s, x) = B*x + beta
 tsigma(s,x) = sigma(T, v)
 ta(s,x) = tsigma(s, x)*tsigma(s, x)'
 lambda = Lyap.lyap(B', -a(T,v))
-tlambda = Lyap.lyap(B', -a(T,v))
-
-N = 501 #samples
+ 
+N = 1001 #samples
 Dt = diff(linspace(0., T, N))
 dt = Dt[1]
-p = 0
 Z = [1]
 Z0 = [1]
 LL = [1]
@@ -174,39 +173,41 @@ for k in 1:K
 	Z = vcat(Z,x) 
 	x = norm(v-leading(euler(0.0, u,  tb,  tsigma, Dt, DW), N))
  	Z0 = vcat(Z0,x)
-	if(k < K/10) 
+	if(k < K/4) 
 	
 	 	yy = euler(0.0, u, LinProc.Bcirc(T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
 		ll =  scalar(likelixcirc(0, T, v, yy, b, a, B, beta, lambda))
 		LL = vcat(LL,ll)
 	end
-	
+		            
 	#println("x(T) = $(leading(x, N)), kernel(x(T)) = $z")
 end
-function kern(d, h, z)
-         scalar(exp (-1/2*d*log(2pi*h)  -0.5*z^2/h))
+function kern(z, d, h)
+         (exp (-1/2*d*log(2pi*h)  -0.5*z.*z/h))
          
 end
+#@vectorize_1arg Number kern
 
-function kernel_est(Z, h)
- M = map(z -> kern(2,h, z),Z)
- mc(M)
-end
+#function kernel_est(Z, h)
+# M = map(z -> kern(2,h, z),Z)
+# mc(M)
+#end
+
 h = 1/K^0.9
-pnaiv =  kernel_est(Z , h)	
-p0naiv = kernel_est(Z0, h)
-p0 = scalar(exp(LinProc.lp(T, u, v, B, beta, tlambda)))
+pnaiv =  mc(kern (Z ,d, h))
+p0naiv = mc(kern (Z0,d, h))
+p0 = scalar(exp(LinProc.lp(T, u, v, B, beta, lambda)))
 p =  mc(p0*LL)
+ 
 #mean((Z .< 0.05)/0.05)/ mean((Z0 .< 0.05)/0.05)
 
 println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
-h = 1/K^1.1
-pnaiv =  kernel_est(Z , h)	
-p0naiv = kernel_est(Z0, h)
-println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
-for h in (logspace(log(10,0.1/K),log(10, 10/K), 10))
-	pnaiv =  kernel_est(Z , h);p0naiv = kernel_est(Z0, h)
-	println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
+println("LL \t", mc(LL), "\t\tpnaiv[1]/p0naiv[1]\t", pnaiv[1]/p0naiv[1])
+
+
+for h in (logspace(log(10,1/sqrt(K)),log(10, 1/K^1.2), 10))
+	pnaiv =  mc(kern(Z ,d, h))	;p0naiv = mc(kern(Z0 ,d, h))
+	println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv")
 end
 stop()
 
