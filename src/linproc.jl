@@ -59,6 +59,12 @@ function H(h, b, lambda)
 	inv(lambda - phim*lambda*phim')
 end
 
+function Hinv(h, b, lambda)
+	phim = expm(-h*b)
+	lambda - phim*lambda*phim'
+end
+
+
 function V(h, v, b, beta)
 	binv = inv(b)
 	phim = expm(-h*b)
@@ -113,7 +119,7 @@ function lp(h, x, y, b, beta, lambda)
 	z = (x - V(h, y, b, beta))
 	(-1/2*length(x)*log(2pi) - 0.5*log(det(K(h,b, lambda))) + 0.5*z'*H(h, b, lambda)*z) 
 end
-#%  .. function:: p0(h, x, y,  mu, gamma)
+#%  .. function:: lp0(h, x, y,  mu, gamma)
 #%               
 #%  	Returns :math:`log p(t,x; T, y)`, the transition density of a Brownian motion with drift mu and diffusion a=inv(gamma), h = T - t 
 #%  
@@ -122,11 +128,33 @@ function lp0(h, x, y, mu, gamma)
          
 end
 
-function sample_p0(h, x, mu, l) #l = chol(gamma)
+function sample_p0(h, x, mu, l) #l = chol(a)
 	z = randn(length(x))
 	x + l*z*sqrt(h) + h*mu
 end
 
+
+function mu(h, x, B, beta)
+	
+	binv = inv(B)
+	phi = expm(h*B)
+	phim = expm(-h*B)
+	integral = binv*beta - phim * binv * beta
+	phi*(x + integral)
+end	
+
+
+function sample_p(h, x, b, beta, lambda) 
+	phi = expm(h*b)
+	binv = inv(b)
+
+	mu = phi*x + phi * binv * beta - binv * beta 
+	k = lambda - phi*lambda*phi'
+	l = chol(k)
+
+	z = randn(length(x))
+	mu + l*z
+end
 
 
 end #linproc
