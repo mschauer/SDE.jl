@@ -100,3 +100,37 @@ mu2 = varmu(h, x, B, beta)
 
 #println(mu1)
 #println(mu2)
+
+#checks if transition density p integrates to 1 by monte carlo integration 
+function test1(h, x0, N, B, beta, A, lambda)
+	su = 0
+	mu =  B*x0+beta
+	mu = x0
+	gamma = inv(A)
+	l = chol(A)
+	for n in [1:N]
+		y = sample_p0(h, x0,mu, l )
+		#su +=  exp(lp0(h, x0, y, mu, diagm([1,1])) +   0*lp(h, x0, y, B, beta, lambda)-lp0(h, x0, y, mu, gamma))
+		su +=  exp(lp(h, x0, y, B, beta, lambda)-lp0(h, x0, y, mu, gamma))
+	end
+	su /= N
+end	
+
+function test0()
+ x0  = [0.2,0.2]
+ A = [[1 0.2],[0.2 1]]
+ B = [[-0.1 0.3],[ -0.3 -0.1]]
+ h = 0.2
+ beta = [0.2, 0.1]
+ mu =  B*x0+beta
+
+ lambda = lyap(B', -A)
+ gamma = inv(A)
+ l = chol(A)
+ su = LinProc.test1(h, x0, 1E5, B, beta, A, lambda )
+
+ println("Integral p(t,x; T, y, B, beta, a):", su)
+
+
+end
+
