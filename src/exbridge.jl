@@ -56,7 +56,7 @@ function likelixcirc(t, T, v, Xcirc, b, a,  B, beta, lambda)
 	
 	function L(s,x)
 		R = LinProc.H(T-s, B, lambda)*(x - LinProc.V(T-s, v, B, beta))
-	  	return (b(s,x) - B*x - beta)' * R - 0.5 *trace((a(s,x) - a(T,v)) *( LinProc.H(T-s, B, lambda) - R*R'))
+	  	return (b(s,x) - B*x - beta)' * R - 0.5 *trace((a(s,x) - a(T,v)) *( -LinProc.H(T-s, B, lambda) - R*R'))
 	end
 	
 	sum = 0
@@ -113,7 +113,11 @@ function plobs(xt, xd)
 	p
 end
 
-
+function mc(M)
+  m = mean(M)
+  ste = std(M)/sqrt(length(M))
+  round([m, 1.96*ste], int(2-log(10,1.96*ste)))
+end
 
 
 #th = 1.7
@@ -146,7 +150,7 @@ a= (s,x) -> sigma(s,x)*sigma(s,x)'
 
 
 println("Compute p(x,y)")
-K = 1E4
+K = 2E4
 T = 0.8
 v = [-1.3, 0]
 tb(s, x) = B*x + beta
@@ -186,13 +190,13 @@ end
 
 function kernel_est(Z, h)
  M = map(z -> kern(2,h, z),Z)
- [mean(M), std(M)/sqrt(length(M))]
+ mc(M)
 end
 h = 1/K^0.9
 pnaiv =  kernel_est(Z , h)	
 p0naiv = kernel_est(Z0, h)
 p0 = scalar(exp(LinProc.lp(T, u, v, B, beta, tlambda)))
-p =  [p0*mean(LL),p0*std(LL)/length(LL) ]
+p =  mc(p0*LL)
 #mean((Z .< 0.05)/0.05)/ mean((Z0 .< 0.05)/0.05)
 
 println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
@@ -200,11 +204,10 @@ h = 1/K^1.1
 pnaiv =  kernel_est(Z , h)	
 p0naiv = kernel_est(Z0, h)
 println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
-h = 1/K
-pnaiv =  kernel_est(Z , h)	
-p0naiv = kernel_est(Z0, h)
-println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
-
+for h in (logspace(log(10,0.1/K),log(10, 10/K), 10))
+	pnaiv =  kernel_est(Z , h);p0naiv = kernel_est(Z0, h)
+	println("h = $h\npnaiv\t$pnaiv \np0naiv\t$p0naiv \np\t$p \np0\t$p0")
+end
 stop()
 
 
