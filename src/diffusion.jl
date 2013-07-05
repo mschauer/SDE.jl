@@ -162,6 +162,16 @@ function ito(x::Vector, dw::Vector)
 	y
 end
 
+#scalar version
+
+function ito0(x, dy)
+	n = length(dy) + 1
+	y = 0.0
+	for i in 2:n
+		y = y + x[i-1]*dy[i-1] 
+	end
+	y
+end
 
 #TODO  ito(x::Array, dw::Array)
  
@@ -291,12 +301,11 @@ end
 #%  .. function:: euler(t0, u, b, sigma, dt, dw)
 #%                euler(t0, u, b, sigma, dt)
 #%  
-#%  	Simulates a diffusion process using the Euler-Maruyama approximation
+#%  	Simulates a 1-dimensional diffusion process using the Euler-Maruyama approximation
 #%  	with drift ``b(t,x)`` and diffusion coefficient ``sigma(t,x)``
 #%  	starting in ``(t0, u)`` using ``dt`` and given Wiener differential ``dw``.
 #%  
 
-#euler: computes the euler approximation of a 
 function euler(t0, u, b, sigma, dt::Vector, dw::Vector)
 	X = zeros(length(dw)+1)
 	
