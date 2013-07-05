@@ -46,10 +46,8 @@ function eulerv(t0, u, v, b, sigma, dt, dw::Matrix)
 	X[:,end] = v
 	X
 end
-
-
+ 
 function likelixcirc(t, T, v, Xcirc, b, a,  B, beta, lambda)
-#ignores last value
 	
 	function L(s,x)
 		R = LinProc.H(T-s, B, lambda)*(x - LinProc.V(T-s, v, B, beta))
@@ -58,16 +56,14 @@ function likelixcirc(t, T, v, Xcirc, b, a,  B, beta, lambda)
 	
 	sum = 0
 	N = size(Xcirc,2)
-	for i in 0:N-1-1 #skip last value, summing over n-1 elements
-	  s = t + (T-t)*(i)/(N-1) 
-	  x = leading(Xcirc, i+1)
-	  sum += scalar(L(s, x)) * (T-t)/(N-1)
+	for i in 1:N
+	  s = t + (T-t)*(i-1)/N
+	  x = leading(Xcirc, i)
+	  sum += scalar(L(s, x)) * (T-t)/N
 	end
-	
 	exp(sum)
 end
-
-
+ 
 
 function plstep(xt, xd, y, yprop)
 	p = FramedPlot()
@@ -101,7 +97,7 @@ function plobs(xt, xd)
 	p
 end
 
- 
+#mc(Z) == mc2(length(Z),sum(Z), sum(Z.^2))  
 
 #th = 1.7
 #b has root/focus at [-sqrt(th), 0]
@@ -132,6 +128,83 @@ end
 
 a= (s,x) -> sigma(s,x)*sigma(s,x)'
 
+K = 40000
+println("Compute p(x,y), K=$K")
+T = 0.8
+v = [-1.3, 0]
+tb(s, x) = B*x + beta
+tsigma(s,x) = sigma(T, v)
+ta(s,x) = tsigma(s, x)*tsigma(s, x)'
+lambda = Lyap.lyap(B', -a(T,v))
+ 
+N = 1001 #samples
+Dt = diff(linspace(0., T, N))
+dt = Dt[1]
+Z = Z2 = 0.
+tZ = tZ2 = 0.
+LL = LL2 = 0.
+function kern(z, d, h)
+         (exp (-1/2*d*log(2pi*h)  -0.5*z.*z/h))
+         
+end
+
+h = 1/K^0.9
+k = 0
+println("h = ", round(h,10+int(log(K))) )
+tp = scalar(exp(LinProc.lp(T, u, v, B, beta, lambda)))
+for k in 1:K
+	#k += 1
+	#h =  1/max(K,100)^0.5 ## CAREFUL, adaptive?
+
+	N = 2001   #samples
+	Dt = diff(linspace(0., T, N))
+	dt = Dt[1]
+	
+	DW = randn(2, N-1) .* sqrt(dt)
+	x = kern(norm(v-leading(euler(0.0, u,  b,  sigma, Dt, DW), N)), d, h)
+	Z += x - tp
+	Z2 += (x-tp)^2
+	tx = kern(norm(v-leading(euler(0.0, u,  tb,  tsigma, Dt, DW), N)), d, h)
+ 	tZ += tx - tp
+ 	tZ2 += (tx-tp)^2
+ 	if (true)#(k<10)
+ 		
+ 	yy = euler(0.0, u, LinProc.Bcirc(T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
+	ll =  scalar(likelixcirc(0, T, v, yy, b, a, B, beta, lambda))
+	LL += ll
+	LL2 += ll^2
+	end
+
+	if (0 == k % 100)
+		println("$k:")
+		println("h = ", round(h,5+int(log(10,k))) )
+		pnaiv =  mc2(k, Z,Z2)
+		tpnaiv = mc2(k, tZ,tZ2)
+		pnaiv[1] += tp
+		tpnaiv[1] += tp
+		
+		p =  mc2(k, tp*LL, tp^2*LL2)
+		println("pnaiv\t$pnaiv \ntpnaiv\t$tpnaiv \np\t$p \ntpexact\t$tp")
+		println("LL \t", mc2(k,LL, LL2))
+		println("pnaiv[1]/tpnaiv[1]\t", pnaiv[1]/tpnaiv[1])
+	end
+		            
+	
+end
+
+# K 38900:
+#h = 7.2135e-5
+#pnaiv   [12.814151082408667,1.185292762982841]
+
+pnaiv =  mc2(k, Z,Z2)
+tpnaiv = mc2(k, tZ,tZ2)
+tp = scalar(exp(LinProc.lp(T, u, v, B, beta, lambda)))
+p =  mc2(k, tp*LL, tp^2*LL2)
+println("h = $h\np naiv\t$pnaiv \ntpnaiv\t$tpnaiv \np\t$p \ntpexact\t$tp")
+println("LL \t", mc2(k,LL, LL2), "\t\tpnaiv[1]/tpnaiv[1]\t", pnaiv[1]/tpnaiv[1])
+
+
+stop()
 
 
 print("Generate x")
@@ -144,7 +217,6 @@ dt = Dt[1]
 DW = randn(2, N-1) .* sqrt(dt)
 x = euler(0.0, u, b, sigma, Dt, DW)
 
-	
 
 #compute range of observations
 R1 = range(x[1,:]) 
@@ -179,8 +251,8 @@ w = W0(x, Dt)  +  1./s^2
 println("th= ", round(m/w,5), "+-", round(1.96*sqrt(1/w), 5))
  
 ###
-M = 1 #number of bridges
-n = 1000 #samples each bridge
+M = 5 #number of bridges
+n = 600 #samples each bridge
 xd = x[:, 1:(N-1)/M:end]
 xtrue = x[:, 1:(N-1)/M/n:end]
 
@@ -193,9 +265,8 @@ v = [-sqrt(th), 0.0]
 B = [0 1; -2*th -1]
 beta = [0, -2*th^(3/2)]
 lambda = Lyap.lyap(B', -a(0,v))
-z = euler(0.0, u, v,  LinProc.Bcirc(T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
+z = eulerv(0.0, u, v,  LinProc.Bcirc(T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
 ll = likelixcirc(0.0, T, v, z, b, a, B, beta, lambda)
-stop()
 #println(ll)
 #error()
 
