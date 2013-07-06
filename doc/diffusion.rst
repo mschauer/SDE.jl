@@ -94,7 +94,7 @@ Reference
 .. function:: euler(t0, u, b, sigma, dt, dw)
               euler(t0, u, b, sigma, dt)
 
-	Simulates a diffusion process using the Euler-Maruyama approximation
+	Simulates a 1-dimensional diffusion process using the Euler-Maruyama approximation
 	with drift ``b(t,x)`` and diffusion coefficient ``sigma(t,x)``
 	starting in ``(t0, u)`` using ``dt`` and given Wiener differential ``dw``.
 
