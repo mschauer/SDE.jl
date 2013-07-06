@@ -52,11 +52,9 @@ export H, r, p, Bstar, Bcirc, Bsharp
 
 function mu(h, x, B, beta)
 	
-	binv = inv(B)
+	binvbeta = B\beta
 	phi = expm(h*B)
-	phim = expm(-h*B)
-	integral = binv*beta - phim * binv * beta
-	phi*(x + integral)
+	phi*(x + binvbeta) - binvbeta
 end	
 
 #%  .. function:: K(h, lambda, b)
@@ -92,13 +90,19 @@ function H(h, b, lambda)
 	inv(lambda - phim*lambda*phim')
 end
 
+function L(h, b, lambda)
+	phim = expm(-h*b)
+	chol(phim*lambda*phim'-lambda, :L)
+end
+
+# x'inv(K)*x =  norm(chol(K, :L)\x)^2
 
 # technical function
 
 function V(h, v, b, beta)
-	binv = inv(b)
+	binvbeta = b\beta
 	phim = expm(-h*b)
-	phim*v + phim * binv * beta - binv * beta 
+	phim*(v + binvbeta) - binvbeta 
 end
 
 
@@ -134,7 +138,8 @@ end
 #%  
 function lp(h, x, y, b, beta, lambda)
 	z = (x - V(h, y, b, beta))
-	(-1/2*length(x)*log(2pi) - 0.5*log(det(K(h,b, lambda))) + 0.5*z'*H(h, b, lambda)*z) 
+	l = L(h, b, lambda)
+	(-1/2*length(x)*log(2pi) -log(apply(*,diag(chol(K(h,b, lambda))))) - 0.5*norm(l\z)^2) #  - 0.5*log(det(K(h,b, lambda)))
 end
 
 #%  .. function:: sample_p(h, x, b, beta, lambda) 
@@ -144,9 +149,9 @@ end
 
 function sample_p(h, x, b, beta, lambda) 
 	phi = expm(h*b)
-	binv = inv(b)
+	binvbeta = b\beta
 
-	mu = phi*x + phi * binv * beta - binv * beta 
+	mu = phi*(x + binvbeta) - binvbeta 
 	k = lambda - phi*lambda*phi'
 	l = chol(k)
 
