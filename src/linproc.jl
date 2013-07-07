@@ -165,7 +165,7 @@ end
 #%  	Returns :math:`log p(t,x; T, y)`, the log transition density of a Brownian motion with drift mu and diffusion a=inv(gamma), h = T - t 
 #%  
 function lp0(h, x, y, mu, gamma)
-          (-1/2*length(x)*log(2pi*h) + 0.5*log(det(gamma))  -0.5*(y-x-h*mu)'*gamma*(y-x-h*mu)/h)
+          (-1/2*length(x)*log(2pi*h) + 0.5*log(det(gamma))  -0.5*(y-x-h*mu)'*gamma*(y-x-h*mu)/h)[1]
          
 end
 #%  .. function:: sample_p0(h, x, mu, l) 
