@@ -55,16 +55,19 @@ function likelixcirc(t, T, v, Xcirc, b, a,  B, beta, lambda)
 	  	return (b(s,x) - B*x - beta)' * R + 0.5 *trace((a(s,x) - a(T,v)) *( LinProc.H(T-s, B, lambda) + R*R'))
 	end
 	
-	sum = 0
+	su = 0
 	N = size(Xcirc,2)
 	s= t
 	x = v 
 	for i in 0:N-1-1 #skip last value, summing over n-1 elements
 	  s = t + (T-t)*(i)/(N-1) 
 	  x = leading(Xcirc, i+1)
-	  sum += scalar(L(s, x)) * (T-t)/N
+	  su += scalar(L(s, x)) * (T-t)/N
 	end
-	sum += scalar( 2*sqrt(T-s)*(b(T,x) - B*x - beta)'* a(T,v)*(v-x)) #interpolate drift part of last interval like square root
+	#interpolate drift part of last interval like square root
+	#ignore a(s,x) - a(T,v) on the last interval
+	#compare http://www.wolframalpha.com/input/?i=integrate+1%2Fsqrt%28T-t%29+dt+from+s+to+T
+	su += scalar( 2*sqrt(T-s)*(b(T,x) - B*x - beta)'* a(T,v)*(v-x)) 
 	
 	exp(sum)
 end
@@ -249,7 +252,7 @@ function testlikeli2(K, N, T)
 end
 
 
-N = 201 #design points
+N = 1001 #design points
 K = 1E6 #samples
 testlikeli1(K, N, 0.2)
 
