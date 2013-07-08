@@ -1,9 +1,9 @@
 # homogeneous vector linear processes with additive noise
 module LinProc
 #using Randm
-export H, r, p, Bstar, Bcirc, Bsharp
-
-
+export H, r, p, Bstar, Bcirc, Bsharp, eulerv, llikelixcirc
+include("leading.jl")
+include("misc.jl")
 #%  .. currentmodule:: LinProc
 #%    
 
@@ -52,11 +52,9 @@ export H, r, p, Bstar, Bcirc, Bsharp
 
 function mu(h, x, B, beta)
 	
-	binv = inv(B)
+	binvbeta = B\beta
 	phi = expm(h*B)
-	phim = expm(-h*B)
-	integral = binv*beta - phim * binv * beta
-	phi*(x + integral)
+	phi*(x + binvbeta) - binvbeta
 end	
 
 #%  .. function:: K(h, lambda, b)
@@ -92,13 +90,19 @@ function H(h, b, lambda)
 	inv(lambda - phim*lambda*phim')
 end
 
+function L(h, b, lambda)
+	phim = expm(-h*b)
+	chol(phim*lambda*phim'-lambda, :L)
+end
+
+# x'inv(K)*x =  norm(chol(K, :L)\x)^2
 
 # technical function
 
 function V(h, v, b, beta)
-	binv = inv(b)
+	binvbeta = b\beta
 	phim = expm(-h*b)
-	phim*v + phim * binv * beta - binv * beta 
+	phim*(v + binvbeta) - binvbeta 
 end
 
 
@@ -121,6 +125,38 @@ function Bcirc(T, v, b, sigma, B, beta, lambda)
 end	
 
 
+#%  .. function:: llikelixcirc(t, T, Xcirc, b, a,  B, beta, lambda)
+#%               
+#%  	Loglikelihood (log weights) of Xcirc with respect to Xstar.
+#%  		t, T -- timespan
+#%  		Xcirc -- bridge proposal (drift Bcirc and diffusion coefficient sigma) 
+#%  		b, sigma -- diffusion coefficient sigma target
+#%  		B, beta -- drift b(x) = Bx + beta of Xtilde
+#%  		lambda -- solution of the lyapunov equation for Xtilde
+
+function llikelixcirc(t, T, Xcirc, b, a,  B, beta, lambda)
+	N = size(Xcirc,2)
+	v = leading(Xcirc, N) #like [X, n]
+	function L(s,x)
+		R = LinProc.H(T-s, B, lambda)*(x - LinProc.V(T-s, v, B, beta))
+	  	return (b(s,x) - B*x - beta)' * R + 0.5 *trace((a(s,x) - a(T,v)) *( LinProc.H(T-s, B, lambda) + R*R'))
+	end
+	
+	sum = 0
+	s= t
+	x = similar(v)
+	for i in 0:N-1-1 #skip last value, summing over n-1 elements
+	  s = t + (T-t)*(i)/(N-1) 
+	  x = leading(Xcirc, i+1)
+	  sum += scalar(L(s, x)) * (T-t)/N
+	end
+	sum += scalar( 2*sqrt(T-s)*(b(T,x) - B*x - beta)'* a(T,v)*(v-x)) #interpolate drift part of last interval like square root
+	
+	sum
+end
+
+
+
 # alternative proposal process
 
 function Bsharp(T, v, b )
@@ -134,7 +170,8 @@ end
 #%  
 function lp(h, x, y, b, beta, lambda)
 	z = (x - V(h, y, b, beta))
-	(-1/2*length(x)*log(2pi) - 0.5*log(det(K(h,b, lambda))) + 0.5*z'*H(h, b, lambda)*z) 
+	l = L(h, b, lambda)
+	(-1/2*length(x)*log(2pi) -log(apply(*,diag(chol(K(h,b, lambda))))) - 0.5*norm(l\z)^2) #  - 0.5*log(det(K(h,b, lambda)))
 end
 
 #%  .. function:: sample_p(h, x, b, beta, lambda) 
@@ -144,9 +181,9 @@ end
 
 function sample_p(h, x, b, beta, lambda) 
 	phi = expm(h*b)
-	binv = inv(b)
+	binvbeta = b\beta
 
-	mu = phi*x + phi * binv * beta - binv * beta 
+	mu = phi*(x + binvbeta) - binvbeta 
 	k = lambda - phi*lambda*phi'
 	l = chol(k)
 
@@ -160,7 +197,7 @@ end
 #%  	Returns :math:`log p(t,x; T, y)`, the log transition density of a Brownian motion with drift mu and diffusion a=inv(gamma), h = T - t 
 #%  
 function lp0(h, x, y, mu, gamma)
-          (-1/2*length(x)*log(2pi*h) + 0.5*log(det(gamma))  -0.5*(y-x-h*mu)'*gamma*(y-x-h*mu)/h)
+          (-1/2*length(x)*log(2pi*h) + 0.5*log(det(gamma))  -0.5*(y-x-h*mu)'*gamma*(y-x-h*mu)/h)[1]
          
 end
 #%  .. function:: sample_p0(h, x, mu, l) 
@@ -173,6 +210,51 @@ end
 function sample_p0(h, x, mu, l) #l = chol(a)
 	z = randn(length(x))
 	x + l*z*sqrt(h) + h*mu
+end
+
+
+#%  .. function:: eulerv(t0, u, v, b(s,x), sigma(s,x), Dt, DW::Matrix)
+#%                eulerv(t0, u, b, sigma, dt, dw::Matrix) = eulerv(t0, u, NaN, b, sigma, dt, dw::Matrix)
+#%  
+#%  	Multivariate euler scheme, starting in u, fixing X[N] = v if v!=NaN (this makes sense, if 
+#%  	b pulls X towards v.). 	``dw`` -- Wiener differential with ``n`` values in the 
+#%  	the interval ``[t0,sum(dt)]`` sampled at timepoints ``t0+Dt[1], t0 + Dt[1] + Dt[2], ...``
+#%	``b, sigma`` -- drift and diffusion coefficient.
+#%  	
+#%  	Example: 
+#%  		
+#%  		Dt = diff(linspace(0., T, N))
+#%  		DW = randn(2, N-1) .* sqrt(dt)
+#%  		dt = Dt[1] yy = euler(0.0, u, b, sigma, Dt, DW)
+		
+
+eulerv(t0, u, b, sigma, dt, dw::Matrix) = eulerv(t0, u, NaN, b, sigma, dt, dw::Matrix)
+
+function eulerv(t0, u, v, b, sigma, dt, dw::Matrix)
+	S = size(dw)
+	N = S[end] + 1
+	
+	shape = size(sigma(0,u)*leading(dw,1))
+ 
+	X = zeros(shape..., N)
+
+	y = copy(u)
+	t = t0
+
+	
+	for i in 1:N-1
+		subleading(X,i)[:] = y
+		t += dt[i]
+		y[:] = y .+  b(t,y)*(dt[i]) .+ sigma(t,y)*leading(dw, i)
+	
+	end
+	
+	if (v == NaN)
+		subleading(X,N)[:] = v
+	else
+		subleading(X,N)[:] = y
+	end
+	X
 end
 
 

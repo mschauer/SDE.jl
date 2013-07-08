@@ -125,3 +125,4 @@ Functions taking ``y` without parameter [a,b] expect ``y`` to be shifted into th
 	
 	Plot 2r*se wide marginal credibility bands, where ``post`` is the result of 
 	bayes_drift and truedrift the true drift (if known :-) ).
+

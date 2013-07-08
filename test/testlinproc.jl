@@ -1,10 +1,10 @@
 # test linproc.jl
-#require("SDE")
+
+include("../src/linproc.jl")
+include("../src/randm.jl")
+include("../src/lyap.jl")
 
 using Cubature
-#using LinProc
-using Randm
-#using Lyap
 using Base.Test
 
 
@@ -14,8 +14,8 @@ d= 4
 #  -1.42184   0.904901  -0.5423]
 #
 srand(5)
-B = randstable(d)
-A = randposdef(d)
+B = Randm.randstable(d)
+A = Randm.randposdef(d)
 function aa(s)
  A
 end
