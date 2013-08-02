@@ -75,20 +75,24 @@ end
   
 
 function r(h, x, v, b, beta, lambda)
-	H(h, b, lambda)*(x - V(h, v, b, beta))
+	H(h, b, lambda)*(V(h, v, b, beta)-x)
 end
 
 
 
-#%  .. function:: K(h, lambda, b)
+#%  .. function:: H(h, lambda, b)
 #%               
-#%  	Hessian of :math:`\log p(t,x; T, v) as a function of x.
+#%  	Negative Hessian of :math:`\log p(t,x; T, v) as a function of x.
 #%  	
 
 function H(h, b, lambda)
 	phim = expm(-h*b)
-	inv(lambda - phim*lambda*phim')
+	inv(phim*lambda*phim'-lambda)
 end
+
+
+
+
 
 function L(h, b, lambda)
 	phim = expm(-h*b)
@@ -102,7 +106,7 @@ end
 function V(h, v, b, beta)
 	binvbeta = b\beta
 	phim = expm(-h*b)
-	phim*(v + binvbeta) - binvbeta 
+	phim*(v + binvbeta) - binvbeta  #CHECK
 end
 
 
@@ -112,7 +116,7 @@ end
 #%  	
 
 function Bstar(T, v, B, beta, a, lambda)
-	(t,x) -> B*x + beta + a * H(T-t, B, lambda)*(x - V(T-t, v, b, beta))
+	(t,x) -> B*x + beta + a * H(T-t, B, lambda)*(V(T-t, v, b, beta)-x)
 end	
 
 #%  .. function:: Bcirc(T, v, b, beta, a, lambda)
@@ -121,7 +125,7 @@ end
 #%  	
 
 function Bcirc(T, v, b, sigma, B, beta, lambda)
-	(t,x) -> b(t,x) +  sigma(t,x)*(sigma(t,x))' * H(T-t, B, lambda)*(x - V(T-t, v, B, beta))
+	(t,x) -> b(t,x) +  sigma(t,x)*(sigma(t,x))' * H(T-t, B, lambda)*(V(T-t, v, B, beta)-x)
 end	
 
 
@@ -138,8 +142,8 @@ function llikelixcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 	N = size(Xcirc,2)
 	v = leading(Xcirc, N) #like [X, n]
 	function L(s,x)
-		R = LinProc.H(T-s, B, lambda)*(x - LinProc.V(T-s, v, B, beta))
-	  	return (b(s,x) - B*x - beta)' * R + 0.5 *trace((a(s,x) - a(T,v)) *( LinProc.H(T-s, B, lambda) + R*R'))
+		R = LinProc.H(T-s, B, lambda)*(LinProc.V(T-s, v, B, beta)-x)
+	  	return  (b(s,x) - B*x - beta)' * R - 0.5 *trace((a(s,x) - a(T,v)) *(LinProc.H(T-s, B, lambda) - R*R'))
 	end
 	
 	sum = 0
@@ -258,5 +262,6 @@ function eulerv(t0, u, v, b, sigma, dt, dw::Matrix)
 end
 
 
+include("clark.jl")
 
 end #linproc
