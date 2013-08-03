@@ -1,6 +1,7 @@
 using Lyap
 
 require("linproc.jl")
+require("misc.jl")
 
 srand(3)
 
@@ -39,6 +40,8 @@ a= (s,x) -> sigma(s,x)*sigma(s,x)'
 		
 #7900: p [0.993,0.066] max's [-23.3,21.7][-48.0,5.3] v [-1.22742,-0.38162,0.00113,0.00266] v0 [-1.222,-0.39,0.0794,0.0202]
 
+#T = 0.2, N = 1201, K = 1E6
+#200000: v [0.02534,0.00069] v0 [0.02702,0.00034] < p [0.02702,0.00034] max's ll [-75.6,4.4] lp [-0.5,2.8] >
 function rare(K, N, E, e, pe)
 
 	println("Compute P(X in E), K=$K")
@@ -48,9 +51,11 @@ function rare(K, N, E, e, pe)
 
 	L = L2 = 0.0
 	V = 0.0
-	V0 = 0.0
 	V2 = 0.0
-	V02 = 0.0
+
+	# avoid cancellation 
+	V0 = BigFloat(0.0)
+	V02 = BigFloat(0.0)
 	
 	Dt = diff(linspace(0., T, N))
 	dt = Dt[1]
@@ -93,7 +98,7 @@ function rare(K, N, E, e, pe)
 			print("$k:")
 		  
 			p =  mc2(k, L, L2)
-			println(" p $p max's ", round(llmax, 1), round(lpbarmax,1), " v ", mc2(k, V, V2)," v0 ", mc2(k,V0, V02))
+			println(" v ", mc2(k, V, V2)," v0 ", mc2(k,float64(V0), float64(V02)), " < p $p max's ll ", round(llmax, 1), " lp ", round(lpbarmax,1)," >" )
 	 
 		end	
 	end
@@ -104,11 +109,11 @@ K = 40000
 T = 0.2
 
 
-N = 101 #design points
+N = 1201 #design points
 K = 1E6 #samples
 
 #v = 1.15 .* LinProc.mu(T, u, B, beta)
-v = LinProc.mu(T, u, B, beta)
+v = 1.15*LinProc.mu(T, u, B, beta)
 
 #test, whether X(T) in E
 function E(x)
