@@ -5,46 +5,10 @@ require("leading.jl")
 require("linproc.jl")
 require("misc.jl")
 require("lyap.jl")
-srand(3)
- 
-SV = false #save images?
 
-
-
-si = 0.08
-d = 2
-B = [ -0.2   -1;   0.5  -0.4]
-bB = copy(B)
-#B = [ -2.21225   -0.49590;   0.631753  -1.34795]
-#A = [ 0.170252  0.178533; 0.178533  2.43255]
-
-beta = [0.5,-0.5]
-#beta = [0.,0.]
-
-function sigma0(s,y)
-	x = copy(y) - beta
-	m = norm(x)
-	if (m > eps())  
-		rho = 1 + 5*2atan(m)/pi
-		return( si*(eye(2)+ 2atan(m)/pi/m*[[x[2], -x[1]]  [rho*x[1], rho*x[2]]]))
-	end
-	return si*eye(2)
-end
-#sigma(s,x) = [[1., -1.]  [5., 5.]]
-sigma(t,x) = sigma0(0., [sin(t), cos(t)])
-#sigma(t,x) = sigma0(t,x)
-
-a(s,x) = sigma(s,x)*sigma(s,x)'
-
- 
-
-b(t,x) = exp(-0.2*t)*bB*x + beta
-ph(t,s) = 5.*exp(-0.2*s)-5.*exp(-0.2*t)
-#b(t,x) =  atan(norm(x))*B*x + beta
- 
-u = [1.,0.]
- 
- 
+d = 2 
+SV = true #save images?
+si = 0.1; include("excoeff2.jl")
 
 
 function plstep(xt, xd, y, yprop)
@@ -95,14 +59,28 @@ end
  
 
 
-print("Generate x")
+
  
-###
+############ 
+print("Parameters: ")
+############ 
+
 M = 4 #number of bridges
 n = 1000 #samples each bridge
 N = 12000 + 1   #full observations
-TT = 0.5*M		#time span
- 
+TT = 2*M		#time span
+mar = 0.5
+#example = "lin"
+example = "brown"
+println("M$M n$n N$N T$TT $example")
+
+############
+
+############
+print("Generate X")
+############
+
+srand(3)
 Dt = diff(linspace(0., TT, N))
 dt = Dt[1]
 DW = randn(2, N-1) .* sqrt(dt)
@@ -112,7 +90,7 @@ x = LinProc.eulerv(0.0, u, b, sigma, Dt, DW)
 
 #compute range of observations
 R1 = range(x[1,:]) 
-mar = 0.5
+
 R1 = (R1[1] -mar*(R1[2]-R1[1]),R1[2] + mar*(R1[2]-R1[1]))
 R2 = range(x[2,:]) 
 R2 = (R2[1]  -mar*(R2[2]-R2[1]), R2[2] + mar*(R2[2]-R2[1]))
@@ -122,30 +100,17 @@ R2 = (R2[1]  -mar*(R2[2]-R2[1]), R2[2] + mar*(R2[2]-R2[1]))
 #R2 = (-10., 10.)  
 println(".")
 
-
-#Prior variance
- 
-
- 
-
-
 xd = x[:, 1:(N-1)/M:end]
 xtrue = x[:, 1:(N-1)/M/n:end]
 
 p = plobs(x, xd)
 if(SV) Winston.file(p, "img/obs.png") end
 
-#      [1869.16,515.23,170074.054,301.773]
-#k 100    acc 25.0[44.0,26.0,23.0,7.0]
-#bridge acc %25.0[44.0,26.0,23.0,7.0]
-#        [1.976,1.849,1.49,6.175]
-#k 100    acc 75.5[88.0,78.0,77.0,59.0]
-#bridge acc %75.5[88.0,78.0,77.0,59.0]
-
-#println(ll)
-error()
-
-#th = 3/4*th
+############
+println("Generate bridges (using proposals $example).")
+############
+srand(3)
+ 
 yprop = cell(M)
 y = cell(M)
 U = zeros(2,n+1)
@@ -158,17 +123,16 @@ yy = zeros(2,n+1)
 K = 100
  
  S = Smax =  Y = Tmax = Tmin = []
+ 
 #accepted bridges
 bb = zeros(M)
-example = "lin"
-#example = "brown"
+
 
 p = cell(M)	
 for m = 1:M 
 	p[m] = FramedPlot()
 end
 
-srand(3)
 for k = 1:K
  	dt = TT/M/n
 	if (k == K/2)
@@ -192,8 +156,7 @@ for k = 1:K
 		try
 			lambda = Lyap.lyap(B', -a(Tmax,v))
 		end
-		#print(lambda)
-		Smax = LinProc.taui(T-2*dt,T)
+	 	Smax = LinProc.taui(T-2*dt,T)
 		S = linspace(0.0,Smax, n)
 
 		#S = -log(1.-Ts/T) 
