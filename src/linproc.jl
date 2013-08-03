@@ -36,15 +36,6 @@ include("misc.jl")
 #%
 
 
-#function B(b, beta)
-#	(t,x) -> B*x + beta
-#end	
-
-#function SIG(sigma)
-#	(t,x) -> sigma
-#end	
-
-
 #%  .. function:: mu(h, x, B, beta)
 #%               
 #%  	Expectation :math:`E_x(X_{t})`
@@ -159,13 +150,6 @@ function llikelixcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 	sum
 end
 
-
-
-# alternative proposal process
-
-function Bsharp(T, v, b )
-	(t,x) -> b(t,x) + (v-x)/(T-t)
-end
 
 
 #%  .. function:: lp(h, x, y, b, beta, lambda)
