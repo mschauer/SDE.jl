@@ -15,16 +15,28 @@ A = [ 0.170252  0.178533; 0.178533  2.43255]
 
 beta = [0.5,-0.5]
 
-function sigma0(s,y)
-	x = copy(y) 
+function sigma0(s,x) 
 	m = norm(x)
 	if (m > eps())  
 		rho = 1 + 5*2atan(m)/pi
-		return( si*(eye(2)+ 2atan(m)/pi/m*[[x[2], -x[1]]  [rho*x[1], rho*x[2]]]))
+		return( si*((1-2atan(m)/pi)eye(2)+ 2atan(m)/pi/m*[[x[2], -x[1]]  [rho*x[1], rho*x[2]]]))
 	end
 	return si*eye(2)
 end
-sigma(t,x) = sigma0(0., [sin(t), cos(t)])
+
+function sigma1(s,x)
+ 	m = norm(x-u)
+	[1 1; -1  (1 + 8atan(2m)/pi)]
+end
+
+
+#sigma(t,x) = sigma0(0., [sin(t), cos(t)])
+#sigma(t,x) = sigma1(t,x)
+sigma(t,x) = sigma0(t,x)
+
+
+
+
 #sigma(t,x) = sigma0(t,x)
 
 
@@ -152,7 +164,7 @@ function dens(K, N, v0, t, T, B, A)
 		
 	for k in 1:K
 	
-		if (OS_NAME != :Windows) print("$k $V\r") end
+		if (OS_NAME != :Windows) print("$k \r") end
 
 		DW = randn(2, N-1) .* sqrt(dt)
 	 	yy = LinProc.eulerv(0.0, u, b, sigma, Dt, DW)
@@ -178,10 +190,10 @@ function dens(K, N, v0, t, T, B, A)
 		Lx += exp(llx)
 		Lx2 += exp(2*llx)
 		#println("$L $V0 $V")    
-		if (0 == k % 200)
+		if (0 == k % 1)
 			print("$k:")
 		  
-			println(" ", mc2(k, float64(Lx), float64(Lx2)), " ~ ", mc2(k,float64(Lo), float64(Lo2)), " < max's llo ", round(llmax, 1), " llx ", round(llxmax,1)," >" )
+			println(" ", mc2(k, float64(Lx), float64(Lx2)), " ~ ", mc3(k,float64(Lo), float64(Lo2)), " < max's llo ", round(llmax, 1), " llx ", round(llxmax,1)," >" )
 	 
 		end	
 	end
@@ -213,8 +225,9 @@ function re()
 end
 
 #rare(K, N, E, re, pe)
-println("dens(K, N, v, 0.9999*T, T, B, 1.0*a(T,v))")
-dens(K, N, v, 0.99*T, T, B, 1.*a(T,v))
+println("D()=\ndens(K, N, v, 0.9999*T, T, B, 1.0*a(T,v))")
+
+	D() = dens(K, N, v, 0.999*T, T, B, 1.*a(T,v))
 #K = 1E4
 #som = 0.
 #dnorm(x) = exp(-0.5*x*x)/sqrt(2pi)

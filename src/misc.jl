@@ -41,6 +41,24 @@ function mc2(k, Z, Z2)
 	end
 	
 end
+function mc3(k, Z, Z2)
+	m = Z/k
+	
+	try
+		va  = sqrt(norm(Z2)/k-norm(m).^2)
+		ste = sqrt(Z2/k-m.^2)/sqrt(k)
+	
+		res = [m, Q95*ste,round(va, 2- int(log(10,va)))]
+		for i in 1:length(m)
+			res[2i-1] = round(res[2i-1], 2- int(log(10,Q95*ste[i])))
+			res[2i] = round(res[2i], int(round(2-log(10,Q95*ste[i]))))
+		end
+		return res
+	catch
+		return [m, NaN.*m, NaN]
+	end
+	
+end
 
 #plot (2d) sample path
 
