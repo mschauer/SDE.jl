@@ -202,7 +202,7 @@ end
 
 
 
-N = 601 #design points
+N = 1201 #design points
 K = 1E6 #samples
 
 #v = 1.15 .* LinProc.mu(T, u, B, beta)
