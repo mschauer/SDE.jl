@@ -11,16 +11,20 @@ taui(t, T) = -log(1-t/T)
 #%  .. function:: Vtau (s, T, v, B, beta)
 #%                dotVtau (s, T, v, B, beta)
 #%  
-#%  	Time changed V and time changed time derivative of V
+#%  	Time changed V and time changed time derivative of V for generation of U
 #%  	
 
 function Vtau (s, T, v, B, beta)
-	if (norm(B) < eps2) return v end
+	if (norm(B) < eps2) 
+		return v - T*exp(-s)*beta
+	end
  	Binvbeta = B\beta
  	expm(-B*T*exp(-s))*( v + Binvbeta) -  Binvbeta
 end
 function dotVtau (s, T, v, B, beta)
-	if (norm(B) < 1E-8) return 0. * v end
+	if (norm(B) < 1E-8) 
+		return beta  
+	end
  	expm(-B*T*exp(-s))*( B*v + beta) 
 end
 
@@ -30,7 +34,7 @@ end
 #%  
 #%  Scaled and time changed process U. 
 #%  	U(s)= exp(s/2.)*(v(s) - X(tau(s))) 
-#%  XofU2 transforms entire process.
+#%  XofU2 transforms entire process U sampled at time points S.
 #%  
 	
 
@@ -53,6 +57,7 @@ function XofU2(S,U, tmin, T, v,  B, beta)
 end
 
 
+#helper functions
 
 ddd(s,u,  T, v,  B, beta) = (tau(s,T), XofU(s,u,  T, v,  B, beta))
 ddd(s,u, tmin, T, v,  B, beta) = (tmin+tau(s,T), XofU(s,u,  T, v,  B, beta))
@@ -64,6 +69,7 @@ qu(A) = A*A'
 	
 
 function J1(s,T, B, A, lambda)
+# 	J is responsible for check whether B is zero
 	phim = expm(-T*exp(-s)*B)
 	sl = exp(s)*lambda
 	T*inv( phim*sl*phim'-sl)
@@ -72,29 +78,33 @@ end
 
 #d = 2 numerical stable for s to infty, using putzer's formula for the matrix exponential and then rearranging terms
 function J2(s,T, B, A, lambda)
+# 	J is responsible for check whether B is zero
 
- 	spur = B[1,1] + B[2,2]
-	det = B[1,1]*B[2,2] - B[1,2]*B[2,1]
 	dis = square(B[1,1] - B[2,2]) + 4.0*B[1,2]*B[2,1]
-	 
-	if (norm(B) > 1E-8) assert(dis < 0) end
+	if (dis >= 0.)
+		return J1(s,T, B, A, lambda)
+	end
+ 	spur = B[1,1] + B[2,2]
+
 	k = 0.5*spur;
 	la = 0.5*sqrt(-dis);
 
 	
-	t = -T*exp(-s)	#-log(-t/T) = s
+	t = -T*exp(-s)	#t = -h, i believe. 
+	#solution of -log(-t/T) = s
 	
-	inv(-exp(2*k*t)/t*(-cos(la*t)*sin(la*t)/la + sin(la*t)^2/la^2*k)*A + # coefficient converges to 1 for t to 0
+	inv(-exp(2*k*t)/t*(-cos(la*t)*sin(la*t)/la + sin(la*t)^2/la^2*k)*A + # coefficient in this line converges to 1 for s to infty
 	-exp(2*k*t)/t*(-(sin(la*t))^2  + (- expm1(-2*k*t) -(cos(la*t)*sinc(la*t/pi)* 2*k*t)) + sin(la*t)^2/la^2* k*k)*lambda +
 	-exp(2*k*t)/t*(sin(la*t)^2/la^2*(B*lambda*B')) 
 	)
+#	rearrangement of 
 #	I = eye(size(lambda)...)
 #	T*exp(-s-2*k*t)* inv(-sin(la*t)^2*lambda +	sin(la*t)^2/(la)^2*(B*lambda*B' + a*k + k*k*I) - cos(la*t)*sin(la*t)/la*(a + 2*k*I))
 end
 
 function J(s,T, B, A, lambda)
 	if norm(B) <= eps2
-		return T*exp(-s)*inv(A)
+		return lambda
 	elseif size(lambda) == (2,2) 
 		return J2(s,T, B, A, lambda) 
 	else
