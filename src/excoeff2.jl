@@ -19,13 +19,13 @@ end
 # banded elliptic
 function sigma1(s,x)
  	m = norm(x-u)
-	[1 1; -1  (1 + 8atan(2m)/pi)]
+	[1 1; -1  (1 + 1atan(2m)/pi)]
 end
 
 
 #sigma(t,x) = sigma0(0., [sin(t), cos(t)])
 #sigma(t,x) = sigma1(t,x)
-sigma(t,x) = sigma0(t,x)
+sigma(t,x) = sigma1(t,x)
 a(s,x) = sigma(s,x)*sigma(s,x)'
 
 
