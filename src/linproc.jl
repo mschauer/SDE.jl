@@ -14,19 +14,23 @@ include("misc.jl")
 #%  
 #%  	:math:`dX_t = B X_t + \beta + \sigma d W_t`
 #%  
-#%  where ``B`` is a stable matrix and ``beta`` a vector, 
+#%  where ``B`` is a stable matrix and ``beta`` a vector, ``A = sigma sigma'`` 
 #%  and conditional vector linear processes (Ornstein--Uhlenbeck bridges so to say)
 #%  ending at time ``T`` in point ``v``,
 #%  
-#%  	:math:`dX^\star_t = B X_t + \beta + a r(s, X^\star_t)  + \sigma d W_t`
+#%  	:math:`dX^\star_t = B X_t + \beta + A r(s, X^\star_t)  + \sigma d W_t`
 #%  
 #%  where  :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` and 
 #%  ``p`` is the transition density of ``X``.
 #%  
-#%  The parameter ``lambda`` is the solution to the Lyapunov equation ``B lambda + lambda B' = -a``, see module ``Lyap``, 
+#%  The parameter ``lambda`` is the solution to the Lyapunov equation ``B lambda + lambda B' = -A``, see module ``Lyap``, 
 #%  
-#%       ``lambda = lyap(b', -a)``
+#%       ``lambda = lyap(B', -A)``
 #%  
+#%  If ``B = 0`` set ``lambda = inv(a)``.
+#%  
+#%  
+
 
 #l = lyap(B',-A); B*l + l*B' + A = 0
 
@@ -36,66 +40,65 @@ include("misc.jl")
 #%
 
 
-#function B(b, beta)
-#	(t,x) -> B*x + beta
-#end	
-
-#function SIG(sigma)
-#	(t,x) -> sigma
-#end	
-
-
 #%  .. function:: mu(h, x, B, beta)
 #%               
 #%  	Expectation :math:`E_x(X_{t})`
 #%  	
-
 function mu(h, x, B, beta)
+	if (norm(B) < eps2) 
+		return x + h*beta
+	end
 	
 	binvbeta = B\beta
 	phi = expm(h*B)
 	phi*(x + binvbeta) - binvbeta
 end	
 
-#%  .. function:: K(h, lambda, b)
+#%  .. function:: K(h, B, lambda)
 #%               
 #%  	Covariance matrix :math:`Cov(X_{t}, X_{t + h})`
 #%  	
 
-function K(h, b, lambda)
-	phi = expm(h*b)
+function K(h, B, lambda)
+	if (norm(B)) < eps2 
+		return h*inv(lambda)
+	end
+	phi = expm(h*B)
 	lambda - phi*lambda*phi'
 end
 
-#%  .. function:: r(h, x, v, b, beta, lambda)
+#%  .. function:: r(h, x, v, B, beta, lambda)
 #%               
 #%  	Returns :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` where
 #%  	``p`` is the transition density of the linear process, used by ``Bstar``.
 #%  
   
 
-function r(h, x, v, b, beta, lambda)
-	H(h, b, lambda)*(V(h, v, b, beta)-x)
+function r(h, x, v, B, beta, lambda)
+	H(h, B, lambda)*(V(h, v, B, beta)-x)
 end
 
 
 
-#%  .. function:: H(h, lambda, b)
+#%  .. function:: H(h, B, lambda)
 #%               
 #%  	Negative Hessian of :math:`\log p(t,x; T, v) as a function of x.
 #%  	
 
-function H(h, b, lambda)
-	phim = expm(-h*b)
+function H(h, B, lambda)
+	if (norm(B)) < eps2 
+		return lambda/h
+	end
+	phim = expm(-h*B)
 	inv(phim*lambda*phim'-lambda)
 end
 
 
-
-
-
-function L(h, b, lambda)
-	phim = expm(-h*b)
+function L(h, B, lambda)
+	if (norm(B)) < eps2 
+		return chol(h*inv(lambda))
+	end
+	phim = expm(-h*B)
 	chol(phim*lambda*phim'-lambda, :L)
 end
 
@@ -103,33 +106,36 @@ end
 
 # technical function
 
-function V(h, v, b, beta)
-	binvbeta = b\beta
-	phim = expm(-h*b)
+function V(h, v, B, beta)
+	if (norm(B) < eps2) 
+		return v - h*beta
+	end
+	binvbeta = B\beta
+	phim = expm(-h*B)
 	phim*(v + binvbeta) - binvbeta  #CHECK
 end
 
 
-#%  .. function:: Bstar(T, v, b, beta, a, lambda)
+#%  .. function:: bstar(T, v, b, beta, a, lambda)
 #%               
 #%  	Returns the drift function of a vector linear process bridge which end at time T in point v.
 #%  	
 
-function Bstar(T, v, B, beta, a, lambda)
+function bstar(T, v, B, beta, a, lambda)
 	(t,x) -> B*x + beta + a * H(T-t, B, lambda)*(V(T-t, v, b, beta)-x)
 end	
 
-#%  .. function:: Bcirc(T, v, b, beta, a, lambda)
+#%  .. function:: bcirc(T, v, b, beta, a, lambda)
 #%               
 #%  	Drift for guided proposal derived from a vector linear process bridge which end at time T in point v.
 #%  	
 
-function Bcirc(T, v, b, sigma, B, beta, lambda)
+function bcirc(T, v, b, sigma, B, beta, lambda)
 	(t,x) -> b(t,x) +  sigma(t,x)*(sigma(t,x))' * H(T-t, B, lambda)*(V(T-t, v, B, beta)-x)
 end	
 
 
-#%  .. function:: llikelixcirc(t, T, Xcirc, b, a,  B, beta, lambda)
+#%  .. function:: llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 #%               
 #%  	Loglikelihood (log weights) of Xcirc with respect to Xstar.
 #%  		t, T -- timespan
@@ -138,7 +144,7 @@ end
 #%  		B, beta -- drift b(x) = Bx + beta of Xtilde
 #%  		lambda -- solution of the lyapunov equation for Xtilde
 
-function llikelixcirc(t, T, Xcirc, b, a,  B, beta, lambda)
+function llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 	N = size(Xcirc,2)
 	v = leading(Xcirc, N) #like [X, n]
 	function L(s,x)
@@ -161,21 +167,17 @@ end
 
 
 
-# alternative proposal process
-
-function Bsharp(T, v, b )
-	(t,x) -> b(t,x) + (v-x)/(T-t)
-end
-
-
 #%  .. function:: lp(h, x, y, b, beta, lambda)
 #%               
 #%  	Returns :math:`log p(t,x; T, y)`, the log transition density of the linear process, h = T - t 
 #%  
-function lp(h, x, y, b, beta, lambda)
-	z = (x - V(h, y, b, beta))
-	l = L(h, b, lambda)
-	(-1/2*length(x)*log(2pi) -log(apply(*,diag(chol(K(h,b, lambda))))) - 0.5*norm(l\z)^2) #  - 0.5*log(det(K(h,b, lambda)))
+function lp(h, x, y, B, beta, lambda)
+	if (norm(B) < eps2)
+		return lp0(h, x, y, beta, lambda)
+	end
+	z = (x - V(h, y, B, beta))
+	l = L(h, B, lambda)
+	(-1/2*length(x)*log(2pi) -log(apply(*,diag(chol(K(h,B, lambda))))) - 0.5*norm(l\z)^2) #  - 0.5*log(det(K(h,b, lambda)))
 end
 
 #%  .. function:: sample_p(h, x, b, beta, lambda) 
@@ -183,9 +185,14 @@ end
 #%  	Samples from the transition density of the linear process, h = T - t. 
 #%  
 
-function sample_p(h, x, b, beta, lambda) 
-	phi = expm(h*b)
-	binvbeta = b\beta
+function sample_p(h, x, B, beta, lambda) 
+	if (norm(B) < eps2)
+		z = randn(length(x))
+		return x + chol(lambda)\z*sqrt(h) + h*beta
+
+	end
+	phi = expm(h*B)
+	binvbeta = B\beta
 
 	mu = phi*(x + binvbeta) - binvbeta 
 	k = lambda - phi*lambda*phi'

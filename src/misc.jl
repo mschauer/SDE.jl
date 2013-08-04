@@ -1,4 +1,4 @@
-#miscellenious helper functions
+#miscellenious helper functions and constants
 
 range(x) = (min(x), max(x))
 
@@ -6,6 +6,9 @@ range(x) = (min(x), max(x))
 #95% normal quantile
 
 Q95 = sqrt(2)*erfinv(0.95)
+
+
+eps2 = sqrt(eps())
 
 
 function scalar(x)
