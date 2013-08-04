@@ -1,4 +1,4 @@
-# test linproc.jl
+# test clark.jl
 
 include("../src/linproc.jl")
 include("../src/randm.jl")
@@ -7,45 +7,7 @@ include("../src/quad.jl")
 require("misc.jl")
 
 using Base.Test
-
-for d in [1, 3, 2]
-
 srand(5)
-B = Randm.randstable(d)
-A = Randm.randposdef(d)
-function aa(s)
- A
-end
-lambdal = Lyap.lyap(B', -A)
-lambdas = Lyap.syl(B, B',-A)
-lambda = lambdal
-
-T = 1.7
-t = 0.5
-
-srand(5)
-x = randn(d)
-v = randn(d)
-beta = randn(d)
-
-s = -log(1-t/T) 
-v1 = LinProc.Vtau (s,T, v, B, beta)
-v2 = LinProc.V(T-t, v, B, beta)
-
-@test norm(v1-v2) < 1E-13
-v3 = LinProc.Vtau (27,T, v, B, beta)
-@test norm(v-v3) < 1E-10
-
-J1 = T*exp(-s)*LinProc.H(T-t, B, lambda)
-J2 = LinProc.J1(s,T, B, A, lambda)
-@test norm(J1-J2) < 1E-10
-
-us =  LinProc.UofX(s,x,  T, v,  B, beta)
-xt =  LinProc.XofU(s,us,  T, v,  B, beta)
-@test norm(x - xt) < 1E-10
-
-end
-
 D = 2
 
 T = 1.7
@@ -54,12 +16,6 @@ t = 0.5
 B = [ -2.21225   -0.49590;   0.631753  -1.34795]
 A = 5*[ 0.170252  0.178533; 0.178533  2.43255]
 lambdal = Lyap.lyap(B', -A)
-
-a1 = LinProc.J1(6,T, B, A, lambda)
-a2 = LinProc.J2(6,T, B, A, lambda)
-@test norm(a1-a2) < 1E-10
-a3 = LinProc.J2(27,T, B,A, lambda)
-@test norm(a3- inv(A)) < 1E-10
 
 
 beta = [0.5,-0.5]

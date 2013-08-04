@@ -4,11 +4,12 @@ include("../src/linproc.jl")
 include("../src/randm.jl")
 include("../src/lyap.jl")
 include("../src/quad.jl")
-
+require("misc.jl")
 using Base.Test
 
 for d in [1 2 3]
-	println("Test dimension =$d")
+for xi in [0.0 0.5]
+	println("Test dimension $d xi $xi")
 	# B = [-10.3268 .67701   -1.85162;
 	#   2.60125  -5.35212    0.4388; 
 	#  -1.42184   0.904901  -0.5423]
@@ -17,13 +18,18 @@ for d in [1 2 3]
 	elseif (d== 2) srand(8)
 	else srand(5)
 	end
-	B = 0.5*Randm.randstable(d)
+	B = xi.*Randm.randstable(d)
 	A = Randm.randposdef(d)
 	function aa(s)
 	 A
 	end
-	lambdal = Lyap.lyap(B', -A)
-	lambdas = Lyap.syl(B, B',-A)
+	if norm(B) > eps()
+		lambdal = Lyap.lyap(B', -A)
+		lambdas = Lyap.syl(B, B',-A)
+	else
+		lambdal = inv(A)
+		lambdas = inv(A)
+	end
 
 	@test norm(lambdal - lambdas) < 1E-10
 	lambda = lambdal
@@ -45,8 +51,18 @@ for d in [1 2 3]
 	h = T-t
 	phi = expm(h*B)
 	phim = expm(-h*B)
-	K2 = lambda - phi*lambda*phi'
-	H4 = phi'*inv(lambda - phi*lambda*phi')*phi
+	K2 = similar(H1)
+	H4 = similar(H1)
+	if (norm(B) < eps2)
+		K2 = A*h
+		H4 = phi'*lambda/h*phi
+
+	else 
+		K2 = lambda - phi*lambda*phi'
+		H4 = phi'*inv(lambda - phi*lambda*phi')*phi
+
+	end
+	
 	H5 = LinProc.H(h, B, lambda)
 
 	@test norm(H1 - H2) < 1E-10
@@ -54,7 +70,7 @@ for d in [1 2 3]
 	@test norm(H1 - H4) < 1E-10
 	@test norm(H1 - H5) < 1E-10
 
-	@test norm(K1-K2) < 16*eps()
+	@test norm(K1-K2) < d*16*eps()
 
 	function varr3(h, x, v, B, beta, lambda)
 		binv = inv(B)
@@ -72,13 +88,15 @@ for d in [1 2 3]
 	srand(5)
 	x0 = x = randn(d)
 	v = randn(d)
-	beta = randn(d)
+	beta = 0.5*randn(d)
 	r1 = LinProc.r(T-t, x, v, B, beta, lambda)
 	r2 = varr(T-t, x, v, B, beta, lambda)
-	r3 = varr3(T-t, x, v, B, beta, lambda)
-
 	@test norm(r1 - r2) < 1E-10
-	@test norm(r1 - r3) < 1E-10
+
+	if(norm(B) > eps2)
+		r3 = varr3(T-t, x, v, B, beta, lambda)
+		@test norm(r1 - r3) < 1E-10
+	end
 
 	println("Test LinProc.mu")
 
@@ -124,39 +142,56 @@ for d in [1 2 3]
 	#wrapper for both tests
 
 	function test0(N, B)
-	#	x0  = [0.2,0.2]
-	#	A = [[1 0.2],[0.2 1]]
-	#	B = [[-0.1 0.3],[ -0.3 -0.1]]
 		h = 0.1
-	#	beta = [0.2, 0.1]
 		mu =  B*x0+beta
-
-		lambda = Lyap.lyap(B', -A)
-		gamma = inv(A)
+		lambda = gamma = inv(A)
+		if (norm(B) > eps2)
+			lambda = Lyap.lyap(B', -A)
+		end
+		
 		l = chol(A)
-		su1 = test1(h, x0, N, B, beta, A, lambda )
+		su1 = test1(h/2, x0, N, B, beta, A, lambda )
 	#	println("Integral p(t,x; T, y, B, beta, a):", su1)
 
-		su2 = test2(h, x0, N, B, beta, A, lambda )
+		su2 = test2(h/2, x0, N, B, beta, A, lambda )
 	#	println("Integral p0(t,x; T, y, B, beta, a):", su2)
 		[su1, su2]
 	end
 	srand(5)
-	n1, n2 = test0(5E3, 0.5B)
+	n1, n2 = test0(1E4, B)
 	#println("Check transition density p, p0 and sampler for p0, p")
 	#println("using seeded monte carlo integration.")
 	println(n1, " ", n2)
 	@test norm(n1-1.) < 5E-2
 	@test norm(n2-1.) < 5E-2
 
-	u = x
+	@test norm(LinProc.lp(T-t, x, v, B, beta,  lambda) - lp(t, T, x,v, (t,s) -> t-s, B, beta, s -> A)) < 1E-10
 
-	b(t,x) = exp(-0.2*t)*B*x + beta
-	ph(t,s) = 5.*exp(-0.2*s)-5.*exp(-0.2*t)
-	SIG = sqrtm(A)
-	sigma(t,x) = exp(-0.1*(T-t))*SIG
-	a(t,x) = exp(-0.2*(T-t))*A
 
-	@test norm(LinProc.lp(T-t, u, v, B, beta,  Lyap.lyap(B', -A)) - lp(t, T, u,v, (t,s) -> t-s, B, beta, s -> A)) < 1E-10
+#	b(t,x) = exp(-0.2*t)*B*x + beta
+#	ph(t,s) = 5.*exp(-0.2*s)-5.*exp(-0.2*t)
+#	SIG = sqrtm(A)
+#	sigma(t,x) = exp(-0.1*(T-t))*SIG
+#	a(t,x) = exp(-0.2*(T-t))*A
 
+
+	s = -log(1-t/T) 
+
+	v1 = LinProc.Vtau (s,T, v, B, beta)
+	v2 = LinProc.V(T-t, v, B, beta)
+	
+	@test norm(v1-v2) < d^2*1E-13
+	v3 = LinProc.Vtau (27,T, v, B, beta)
+	@test norm(v-v3) < 1E-10
+
+	J1 = T*exp(-s)*LinProc.H(T-t, B, lambda)
+	J2 = LinProc.J(s,T, B, A, lambda)
+	@test norm(J1-J2) < 1E-10
+
+	us =  LinProc.UofX(s,x,  T, v,  B, beta)
+	xt =  LinProc.XofU(s,us,  T, v,  B, beta)
+	@test norm(x - xt) < 1E-10
+
+
+end
 end
