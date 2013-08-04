@@ -35,8 +35,8 @@ N = 50
 v = [0.5, -0.1]
 lambda = Lyap.lyap(B', -a(T,v))
 
-
-Dt = diff(linspace(0., T, N))
+Ts = linspace(0., T, N)
+Dt = diff(Ts)
 dt = Dt[1]
 Smax = LinProc.taui(T-dt,T)
 S = linspace(0.,Smax, N)
@@ -101,7 +101,7 @@ Ds = diff(S)
  
 		
 for i in 1:M
-	DW = randn(2,n-1).*[sqrt(Ds)  sqrt(Ds)]'
+	DW = randn(2,N-1).*[sqrt(Ds)  sqrt(Ds)]'
 	u0 =  LinProc.UofX(0,u,  T, v,  B, beta)
 	yy = LinProc.eulerv(0.0, u0, LinProc.bU(T, v, b, a, B, beta, lambda), (s,x) -> sqrt(T)*sigma(LinProc.ddd(s,x, 0., T, v,  B, beta)...), Ds, DW)
 #	println(size(yy))
