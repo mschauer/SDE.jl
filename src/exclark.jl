@@ -148,7 +148,7 @@ function dens(K, N, v0, t, T, B, A)
 		if (0 == k % 200)
 			print("$k:")
 		  
-			println(" ", mc2(k, float64(Lx), float64(Lx2)), " ~ ", mc3(k,float64(Lo), float64(Lo2)), " < max's llo ", round(llmax, 1), " llx ", round(llxmax,1)," >" )
+			println(" ", mc3(k, float64(Lx), float64(Lx2)), " ~ ", mc3(k,float64(Lo), float64(Lo2)), " < max's llo ", round(llmax, 1), " llx ", round(llxmax,1)," >" )
 	 
 		end	
 	end

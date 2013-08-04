@@ -8,7 +8,7 @@ require("misc.jl")
 
 using Base.Test
 srand(5)
-D = 2
+d = 2
 
 T = 1.7
 t = 0.5
@@ -28,7 +28,7 @@ sigma(t,x) = exp(-0.1*(T-t))*SIG
 a(t,x) = exp(-0.2*(T-t))*A
 
  
-N = 50
+N = 100
 
 
 
@@ -42,40 +42,29 @@ Smax = LinProc.taui(T-dt,T)
 S = linspace(0.,Smax, N)
 Ds = diff(S)
 ds = Ds[1]
-yy = zeros(2, N)
 
-M = 20000
-Xt0 = zeros(2, M)
-XT = zeros(2, M)
-Xll = zeros(M) 
-X2ll = zeros(M) 
-X3ll = zeros(M) 
+M = 2000 
 
-X2t0 = zeros(2, M)
-Ut0 = zeros(2, M)
+Yll = zeros(M) 
+Y2ll = zeros(M) 
+Y3ll = zeros(M) 
+
+Yt0 = zeros(2, M)
+Y2t0 = zeros(2, M)
+ 
 nt = int(floor(5N/10))
 
 t0 =  dt*nt
 
-#for i in 1:M
-#	DW = randn(2, N-1) .* sqrt(dt)
-#	yy = LinProc.eulerv(0.0, u, b, sigma, Dt, DW)
-# 	XT[:,i] = yy[:,end]
-#	 
-#end
-#println(mean(XT[1,:]), mean(XT[2,:]))
-
- 
-
 for i in 1:M
 	DW = randn(2, N-1) .* sqrt(dt)
-	yy = LinProc.eulerv(0.0, u, v, LinProc.bcirc(T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
-	ll =  LinProc.llikeliXcirc(0, T, yy, b, a, B, beta, lambda)
-	Xt0[:,i] = yy[:,nt]
-	Xll[i] = ll
+	Y = LinProc.eulerv(0.0, u, v, LinProc.bcirc(T, v, b, sigma, B, beta, lambda), sigma, Dt, DW)
+	ll =  LinProc.llikeliXcirc(0, T, Y, b, a, B, beta, lambda)
+	Yt0[:,i] = Y[:,nt]
+	Yll[i] = ll
 end	
 
-println("X° at ", round(t0,3), "($nt): ", [mean(Xt0[1,:]), mean(Xt0[2,:])])
+println("X° at ", round(t0,3), "($nt): ", [mean(Yt0[1,:]), mean(Yt0[2,:])])
 
 
 x1 = zeros(2, M)
@@ -86,14 +75,13 @@ s0 = ds*ns
 for i in 1:M
 	DW = randn(2, N-1) .* sqrt(ds)
 	u0 =  LinProc.UofX(0,u,  T, v,  B, beta)
-	yy = LinProc.eulerv(0.0, u0, LinProc.bU(T, v, b, a, B, beta, lambda), (s,x) -> sqrt(T)*sigma(LinProc.ddd(s,x, 0., T, v,  B, beta)...), Ds, DW)
-#	println(size(yy))
-	ll = LinProc.llikeliU(S, yy, 0., T, v, b, a,  B, beta, lambda)
-	Ut0[:,i] = yy[:,ns]
-	X2t0[:,i] =  LinProc.XofU(s0, yy[:,ns],  T, v,  B, beta)
-	X2ll[i] = ll
+	U = LinProc.eulerv(0.0, u0, LinProc.bU(T, v, b, a, B, beta, lambda), (s,x) -> sqrt(T)*sigma(LinProc.ddd(s,x, 0., T, v,  B, beta)...), Ds, DW)
+ 	ll = LinProc.llikeliU(S, U, 0., T, v, b, a,  B, beta, lambda)
+	Y2t0[:,i] =  LinProc.XofU(s0, U[:,ns],  T, v,  B, beta)
+	Y2ll[i] = ll
 end
 
+println("X°(U) at ", round(LinProc.tau(s0,T),3), "    : ", [mean(Y2t0[1,:]), mean(Y2t0[2,:])])
 
 S = -log(1.-Ts/T) 
 Ds = diff(S)
@@ -103,26 +91,23 @@ Ds = diff(S)
 for i in 1:M
 	DW = randn(2,N-1).*[sqrt(Ds)  sqrt(Ds)]'
 	u0 =  LinProc.UofX(0,u,  T, v,  B, beta)
-	yy = LinProc.eulerv(0.0, u0, LinProc.bU(T, v, b, a, B, beta, lambda), (s,x) -> sqrt(T)*sigma(LinProc.ddd(s,x, 0., T, v,  B, beta)...), Ds, DW)
-#	println(size(yy))
-	ll = LinProc.llikeliU(S, yy, 0., T, v, b, a,  B, beta, lambda)
-	X3ll[i] = ll
+	U = LinProc.eulerv(0.0, u0, LinProc.bU(T, v, b, a, B, beta, lambda), (s,x) -> sqrt(T)*sigma(LinProc.ddd(s,x, 0., T, v,  B, beta)...), Ds, DW)
+ 	ll = LinProc.llikeliU(S, U, 0., T, v, b, a,  B, beta, lambda)
+	Y3ll[i] = ll
 end
 
 
-	 			
-println("U at ", round(s0,3), "($ns): ", [mean(Ut0[1,:]), mean(Ut0[2,:])])
-println("X°(U) at ", round(LinProc.tau(s0,T),3), "    : ", [mean(X2t0[1,:]), mean(X2t0[2,:])])
+	 			 
 
 println("T-dt = ", round(T-dt,3), " ~ ", round(LinProc.tau(N*ds,T),3))
 
-println(mc(exp(real(Xll))), mc(exp(real(X2ll)))) 
+println(mc(exp(real(Yll))), mc(exp(real(Y2ll)))) 
 #println(mc(exp(imag(Xll))), mc(exp(imag(X2ll)))) 
 
 plambda = exp(LinProc.lp(T, u, v, B, beta, lambda))
 p = exp(lp(0, T, u,v, ph, B, beta, s -> a(s,NaN)))
 
-println("~p ", round(plambda,5), " p ", round(p,5), " ", mc(exp(real(Xll))*plambda), mc(exp(real(X2ll))*plambda) )
+println("~p ", round(plambda,5), " p ", round(p,5), " ", mc(exp(real(Yll))*plambda), mc(exp(real(Y2ll))*plambda) )
 println()
 
 
