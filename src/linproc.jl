@@ -116,26 +116,26 @@ function V(h, v, B, beta)
 end
 
 
-#%  .. function:: Bstar(T, v, b, beta, a, lambda)
+#%  .. function:: bstar(T, v, b, beta, a, lambda)
 #%               
 #%  	Returns the drift function of a vector linear process bridge which end at time T in point v.
 #%  	
 
-function Bstar(T, v, B, beta, a, lambda)
+function bstar(T, v, B, beta, a, lambda)
 	(t,x) -> B*x + beta + a * H(T-t, B, lambda)*(V(T-t, v, b, beta)-x)
 end	
 
-#%  .. function:: Bcirc(T, v, b, beta, a, lambda)
+#%  .. function:: bcirc(T, v, b, beta, a, lambda)
 #%               
 #%  	Drift for guided proposal derived from a vector linear process bridge which end at time T in point v.
 #%  	
 
-function Bcirc(T, v, b, sigma, B, beta, lambda)
+function bcirc(T, v, b, sigma, B, beta, lambda)
 	(t,x) -> b(t,x) +  sigma(t,x)*(sigma(t,x))' * H(T-t, B, lambda)*(V(T-t, v, B, beta)-x)
 end	
 
 
-#%  .. function:: llikelixcirc(t, T, Xcirc, b, a,  B, beta, lambda)
+#%  .. function:: llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 #%               
 #%  	Loglikelihood (log weights) of Xcirc with respect to Xstar.
 #%  		t, T -- timespan
@@ -144,7 +144,7 @@ end
 #%  		B, beta -- drift b(x) = Bx + beta of Xtilde
 #%  		lambda -- solution of the lyapunov equation for Xtilde
 
-function llikelixcirc(t, T, Xcirc, b, a,  B, beta, lambda)
+function llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 	N = size(Xcirc,2)
 	v = leading(Xcirc, N) #like [X, n]
 	function L(s,x)

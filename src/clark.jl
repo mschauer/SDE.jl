@@ -124,7 +124,7 @@ end
 
 
 function llikeliU(S, U, T, v, b, a,  B, beta, lambda)
-	llikeliU(S, U, tmin, T, v, b, a,  B, beta, lambda)
+	llikeliU(S, U, 0.0, T, v, b, a,  B, beta, lambda)
 end
 
 function llikeliU(S, U, tmin, T, v, b, a,  B, beta, lambda)
