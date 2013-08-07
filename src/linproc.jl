@@ -32,7 +32,7 @@ include("misc.jl")
 #%  
 
 
-#l = lyap(B',-A); B*l + l*B' + A = 0
+# l = lyap(B',-A); B*l + l*B' + A = 0
 
 #%  
 #%  Reference 
