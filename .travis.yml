@@ -9,7 +9,6 @@ before_install:
     - sudo apt-get update -qq -y
     - sudo apt-get install libpcre3-dev julia -y
 script:
-    - julia -e "Pkg.init()"
-    - mkdir -p ~/.julia/SDE
-    - cp -R ./* ~/.julia/SDE
-    - julia ~/.julia/SDE/test/runtests.jl
+    - julia -e 'Pkg.init(); run(`ln -s $(pwd()) $(Pkg.dir())/`); Pkg.resolve()'
+    - julia -e 'using SDE; @assert isdefined(:SDE); @assert typeof(SDE) === Module'
+    - julia test/runtests.jl TEST
