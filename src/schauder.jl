@@ -111,7 +111,7 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 order(a,b) = a > b ? (b,a): (a,b)
 
 
-function ilogbi(n::Integer)
+function ilogbi(n::Int32)
 	Base.exponent(float(n))
 end
 
@@ -142,7 +142,7 @@ end
 
 function vectoroflevels(L, K)
 	n = 2^L
-	o = zeros(Integer, n-1+K)
+	o = zeros(Int32, n-1+K)
 	i = 0
 	for l in 0:L-1
 	   for j in 2^l:2^l:n-1
@@ -158,7 +158,7 @@ end
 
 function number(L, K)
 	n = 2^L
-	o = zeros(Integer, n-1+K)
+	o = zeros(Int32, n-1+K)
 	i = 0
 	for l in 0:L-1
 	   for j in 2^l:2^(l+1):n-1
