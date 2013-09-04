@@ -64,3 +64,4 @@ More information
 
 [See the documentation at sdejl.readthedocs.org.](https://sdejl.readthedocs.org)
 
+[![Build Status](https://api.travis-ci.org/mschauer/SDE.jl.png)](https://travis-ci.org/mschauer/SDE.jl)
