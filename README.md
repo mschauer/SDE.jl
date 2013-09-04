@@ -1,7 +1,16 @@
 Julia package SDE.jl 
 ====================
 
-This is work in progress.
+This is work in progress. This package includes functionality to
+
+* simulate diffusion processes in one or more dimension
+* especially simulate vector linear processes / Ornstein-Uhlenbeck processes
+* Monte Carlo sample diffusion bridges, diffusion processes conditioned to hit a point ``v`` at a prescribed time ``T``
+* functions for transition density, mean and covariance of linear processes
+* perform Monte Carlo estimates of transition densities of general diffusion processes
+* to nonparametrically estimate the drift of a diffusion with unit diffusion coefficient
+
+Not everything is implemented fully, the interface is crude, but most workhorse functions are there.
 
 Layout
 ------
