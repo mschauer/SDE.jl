@@ -53,7 +53,7 @@ function brown1(u, t, n::Integer)
 	x = cumsum(x)
 end
 
-#%  .. function:: brown1(u, t, n::Integer) 
+#%  .. function:: brown(u, t, d::Integer, n::Integer) 
 #%  
 #%  	Simulate ``n`` equally spaced samples of ``d``-dimensional Brownian motion in
 #%  	the interval ``[0,t]``, starting from point ``u``
@@ -96,13 +96,6 @@ function dT0(t, n)
 	dt = ones(n)*(t/(n-1))
 	dt[1] = 0
 	return dt
-end
-
-
-function dW0(t,n) 
-	dw = randn(n)*sqrt(t/(n-1))
-	dw[1] = 0
-	return dw
 end
 
 
