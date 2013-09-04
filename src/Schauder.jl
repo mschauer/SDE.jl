@@ -111,7 +111,7 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 order(a,b) = a > b ? (b,a): (a,b)
 
 
-function ilogbi(n::Int32)
+function ilogbi(n::Integer)
 	Base.exponent(float(n))
 end
 
