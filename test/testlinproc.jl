@@ -1,12 +1,5 @@
 # test linproc.jl
 
-include("../src/linproc.jl")
-include("../src/randm.jl")
-include("../src/lyap.jl")
-include("../src/quad.jl")
-require("misc.jl")
-using Base.Test
-
 for d in [1 2 3]
 for xi in [0.0 0.5]
 	println("Test dimension $d xi $xi")

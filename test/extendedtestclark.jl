@@ -1,12 +1,5 @@
-# test clark.jl
+# testing clark.jl, takes some while and gives qualitative results, so not included in tests
 
-include("../src/linproc.jl")
-include("../src/randm.jl")
-include("../src/lyap.jl")
-include("../src/quad.jl")
-require("misc.jl")
-
-using Base.Test
 srand(5)
 d = 2
 
@@ -21,8 +14,8 @@ lambdal = Lyap.lyap(B', -A)
 beta = [0.5,-0.5]
 u = [1.,0.]
 
-b(t,x) = exp(-0.2*t)*B*x + beta
-ph(t,s) = 5.*exp(-0.2*s)-5.*exp(-0.2*t)
+function b(t,x) exp(-0.2*t)*B*x + beta end
+function ph(t,s) 5.*exp(-0.2*s)-5.*exp(-0.2*t) end
 SIG = sqrtm(A)
 sigma(t,x) = exp(-0.1*(T-t))*SIG
 a(t,x) = exp(-0.2*(T-t))*A
@@ -43,7 +36,7 @@ S = linspace(0.,Smax, N)
 Ds = diff(S)
 ds = Ds[1]
 
-M = 2000 
+M = 200
 
 Yll = zeros(M) 
 Y2ll = zeros(M) 

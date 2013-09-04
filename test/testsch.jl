@@ -1,6 +1,4 @@
-require("SDE")
 using Schauder
-using Test
 
 th1 = sin(linspace(0,10,2^5-1))
 th2 = copy(th1)

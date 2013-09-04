@@ -1,7 +1,5 @@
-require("SDE")
 using Diffusion
-
-using Base.Test
+srand(8)
 
 @test brown1(3,2,1) == [3.0]
 @test length(brown1(3,4,2)) == 2
@@ -67,8 +65,8 @@ s2 = var(qu)
 @test chilower < 1000*abs(var0([bb(0,1,2,5)[3] for i in 1:1000]-0.5))*2 < chiupper
 @test chilower < 1000*abs(var0([cumsum0(dWcond(2, 2, 5))[3] for i in 1:1000]-1))*2. < chiupper
 
-a = sum([abs(2 - quvar(ito(aug(dW1(2., 100),1/50,10)))) for j in 1:1000])
-b = sum([abs(2 - quvar(ito(aug(dW1(2., 100),1/51,10)))) for j in 1:1000])
-c = sum([abs(2 - quvar(ito(aug(dW1(2., 100),1/49,10)))) for j in 1:1000])
+a1 = sum([abs(2 - quvar(ito(aug(dW1(2., 100),1/50,10)))) for j in 1:1000])
+a2 = sum([abs(2 - quvar(ito(aug(dW1(2., 100),1/51,10)))) for j in 1:1000])
+a3 = sum([abs(2 - quvar(ito(aug(dW1(2., 100),1/49,10)))) for j in 1:1000])
 
-@test a < min(b,c)
+@test a1 < min(a2, a3)

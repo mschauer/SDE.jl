@@ -1,4 +1,3 @@
-require("SDE")
 using Lyap
 
 # test lyap with random matrices nmax times for each dimension in dims and sum the difference 

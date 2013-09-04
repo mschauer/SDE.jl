@@ -1,7 +1,6 @@
-require("SDE")
 using Schauder
 using NonparBayes
-using Base.Test
+
 
 ## procudes the same as computing mu' and then performing pick_up(mu).
 function pickedup_mu(y, L)
