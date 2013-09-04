@@ -5,6 +5,7 @@
 #include(Pkg.dir("SDE")*"/src/LinProc.jl")
 #include(Pkg.dir("SDE")*"/src/Lyap.jl")
 
+#include relative to location of SDE.jl, not to current pwd()
 include("Diffusion.jl")
 include("Schauder.jl")
 include("NonparBayes.jl")

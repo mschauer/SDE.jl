@@ -1,7 +1,7 @@
 using Schauder
 using NonparBayes
-
-
+using Base.Test
+srand(10)
 ## procudes the same as computing mu' and then performing pick_up(mu).
 function pickedup_mu(y, L)
 	n = 2^(L-1) #number of even element/elements in lowest level!
@@ -58,13 +58,13 @@ Sigma2 = NonparBayes.pickup_Sigma!(Sigma2)
 
 println([th1 th2 mu1 mu1b mu2 mu2b])
 
-println("Should be zero:")
-println(norm(mu2-mu2b))
-println(norm(mu1-mu1b))
-println(norm(Sigma1-Sigma1b))
-println("Should be equal:")
+@test norm(mu2-mu2b) < eps()
+@test norm(mu1-mu1b) < eps()
+@test norm(Sigma1-Sigma1b) < 4eps()
 
-println(th1'*mu1, th2'*mu2, th2'*mu2b)
+@test norm(th1'*mu1 - th2'*mu2) < 8eps()
+@test norm(th1'*mu1 - th2'*mu2b) < 8eps()
 
-println(th1'*Sigma1*th1,th1'*Sigma1b*th1, th2'*Sigma2*th2)
+@test norm(th1'*Sigma1*th1 - th1'*Sigma1b*th1) < 8eps()
+@test norm(th1'*Sigma1*th1 - th2'*Sigma2*th2) < 8eps()
 

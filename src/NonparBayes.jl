@@ -2,6 +2,9 @@ module NonparBayes
 export ex1, fex1, fex2, bayes_drift, test1, levelK, finger_pm, visualize_posterior
 using Schauder
 using Diffusion
+const libsigma = Pkg.dir("SDE", "deps", "libsigma")
+
+
 #using Winston
 
 #%  .. currentmodule:: NonparBayes
@@ -238,7 +241,7 @@ function fe_mu_c(y::Vector{Float64}, L, K)
 	n = 2^(L-1)
 	mu = zeros(Float64,2n-1 + K)
 	N = length(y)
-	product = ccall( (:fe_mu_at, "../lib/libsigma.s"),
+	product = ccall( (:fe_mu_at, libsigma),
                   Void,
                   (Ptr{Float64}, Ptr{Float64}, Int32, Int32),
                   mu, y, N, L)
@@ -383,7 +386,7 @@ function fe_Sigma_c(y::Vector{Float64}, dt::Float64, L)
 	n = 2^(L-1)
 	N = length(y)
 	S = zeros(Float64,(2n-1)^2)
-	product = ccall( (:fe_Sigma_at, "../lib/libsigma.s"),
+	product = ccall( (:fe_Sigma_at, Pkg.dir("SDE")*"lib/libsigma.s"),
                   Void,
                   (Ptr{Float64}, Ptr{Float64}, Int32, Float64, Int32),
                   S, y, N, dt, L)
@@ -394,7 +397,7 @@ function fe_SigmaB1_c(y::Vector{Float64}, dt::Float64, L)
 	n = 2^(L-1)
 	N = length(y)
 	S = zeros(Float64,(2n)^2)
-	product = ccall( (:fe_SigmaB1_at, "../lib/libsigma.s"),
+	product = ccall( (:fe_SigmaB1_at, Pkg.dir("SDE")*"lib/libsigma.s"),
                   Void,
                   (Ptr{Float64}, Ptr{Float64}, Int32, Float64, Int32),
                   S, y, N, dt, L)

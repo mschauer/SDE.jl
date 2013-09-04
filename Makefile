@@ -1,5 +1,6 @@
 SRC_DIR = src
 DOC_DIR = doc
+DEPS_DIR = deps
 
 .PHONY: doc
 
