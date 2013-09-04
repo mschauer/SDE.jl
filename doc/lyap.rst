@@ -1,7 +1,10 @@
 .. currentmodule:: Lyap
   
-Introduction to module Lyap
-----------------------------
+Module Lyap.jl
+--------------
+
+Documentation
+~~~~~~~~~~~~~
       
  
   DESCRIPTION
@@ -37,7 +40,7 @@ Introduction to module Lyap
 
 
 Reference 
----------
+~~~~~~~~~
 
 .. function:: issquare(a)
              

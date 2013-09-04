@@ -58,8 +58,8 @@ const libsigma = Pkg.dir("SDE", "deps", "libsigma")
 #%  
 
 #%  
-#%  Optional additial basis functions
-#%  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+#%  Optional additional basis functions
+#%  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #%  
 #%  One can extend the basis by additional functions, implemented are variants. ``B1`` includes a constant, ``B2`` two linear functions
 #%  

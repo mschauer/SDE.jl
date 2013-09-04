@@ -3,8 +3,11 @@ export lyap, syl
 
 #%  .. currentmodule:: Lyap
 #%    
-#%  Introduction to module Lyap
-#%  ----------------------------
+#%  Module Lyap.jl
+#%  --------------
+#%  
+#%  Documentation
+#%  ~~~~~~~~~~~~~
 #%        
 #%   
 #%    DESCRIPTION
@@ -41,7 +44,7 @@ export lyap, syl
 #%  
 
 #%  Reference 
-#%  ---------
+#%  ~~~~~~~~~
 #%  
 #%  .. function:: issquare(a)
 #%               

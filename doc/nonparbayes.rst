@@ -47,8 +47,8 @@ and the n-vector
 and uses ``pickup_mu!(mu)`` and ``pickup_Sigma!(Sigma)`` to obtain :math:`\mu` and :math:`\Sigma`. 
 
 
-Optional additial basis functions
-~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+Optional additional basis functions
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 One can extend the basis by additional functions, implemented are variants. ``B1`` includes a constant, ``B2`` two linear functions
 
