@@ -5,8 +5,12 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 #%    
 #%  .. _modschauder:
 #%
-#%  Introduction to module Schauder
-#%  -------------------------------
+#%  Module Schauder
+#%  ---------------
+#%
+#%  Introduction
+#%  ~~~~~~~~~~~~
+#%
 #%  In the following ``hat(x)`` is the piecewise linear function taking values
 #%  values ``(0,0), (0.5,1), (1,0)`` on the interval ``[0,1]`` and ``0`` elsewhere.
 #%  
@@ -73,7 +77,7 @@ export level, levelK, vectoroflevels, number, finger_pm, finger_permute, permuta
 
 
 #%  Reference 
-#%  ---------
+#%  ~~~~~~~~~
 #%  
 #%  
 #%  .. function:: pickup!(x)

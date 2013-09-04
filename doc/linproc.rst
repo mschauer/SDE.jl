@@ -1,31 +1,56 @@
 .. currentmodule:: LinProc
   
-Introduction to module LinProc
-------------------------------
+LinProc
+------- 
 
-Some functions relevant for generating vector linear processes 
+Introduction
+~~~~~~~~~~~~
+
+This module covers
+
+* The simulation of multivariate diffusion processes with a simple Euler scheme
+* the simulation of (Vector) Ornstein--Uhlenbeck processes 
+* the simulation of Ornstein--Uhlenbeck bridges
+* mean and covariance functions and transition density of Ornstein--Uhlenbeck processes 
+* the Monte Carlo simulation of Diffusion bridges 
+
+A multivariate *diffusion process*  is the solution to the stochastic differential equation (SDE)
+
+	:math:`dX_t = b(t, X_t) \sigma(t, X_t) d W_t`
+
+where ``W_t`` is a ``d``-dimension Wiener process, ``b`` is a vector valued *drift* function and ``a = sigma sigma'`` the *diffusion* matrix.
+The function
+
+	eulerv(t0, u, b(s,x), sigma(s,x), Dt, DW::Matrix)
+
+implements the multivariate euler scheme, starting in the point ``u`` the same conventions as in module ``Diffusion`` apply.
+ 
+
+A *vector linear process*  (Ornstein--Uhlenbeck process) is of the special form
 
 	:math:`dX_t = B X_t + \beta + \sigma d W_t`
 
 where ``B`` is a stable matrix and ``beta`` a vector, ``A = sigma sigma'`` 
-and conditional vector linear processes (Ornstein--Uhlenbeck bridges so to say)
-ending at time ``T`` in point ``v``,
+
+
+A *conditional vector linear processes* (Ornstein--Uhlenbeck bridges so to say)
+ending at time ``T`` in point ``v`` are given by
 
 	:math:`dX^\star_t = B X_t + \beta + A r(s, X^\star_t)  + \sigma d W_t`
 
 where  :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` and 
-``p`` is the transition density of ``X``.
+``p`` is the transition density of the corresponding linear process ``X``.
 
 The parameter ``lambda`` is the solution to the Lyapunov equation ``B lambda + lambda B' = -A``, see module ``Lyap``, 
 
      ``lambda = lyap(B', -A)``
 
-If ``B = 0`` set ``lambda = inv(a)``.
+If ``B = 0``, ``lambda = lyap(B',-A)`` is not defined, provide ``lambda = inv(a)`` as argument to the functions instead.
 
 
 
 Reference 
----------
+~~~~~~~~~
 
 .. function:: mu(h, x, B, beta)
              

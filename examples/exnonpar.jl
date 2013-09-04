@@ -1,7 +1,7 @@
 require("SDE")
 using Schauder
 using Diffusion
-using SdeNonparBayes
+using NonparBayes
 using Winston
 
 

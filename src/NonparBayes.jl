@@ -1,14 +1,18 @@
-module SdeNonparBayes
+module NonparBayes
 export ex1, fex1, fex2, bayes_drift, test1, levelK, finger_pm, visualize_posterior
 using Schauder
 using Diffusion
 #using Winston
 
-#%  .. currentmodule:: SdeNonparBayes
+#%  .. currentmodule:: NonparBayes
 #%    
 
-#%  Introduction to module SdeNonparBayes
-#%  -------------------------------------
+#%  Module NonparBayes
+#%  ------------------
+#%  
+#%  Introduction
+#%  ~~~~~~~~~~~~
+#%  
 #%
 #%  The procedure is as follows.
 #%  Consider the diffusion process :math:`(x_t\colon 0 \le t \le T)` given by
@@ -52,7 +56,7 @@ using Diffusion
 
 #%  
 #%  Optional additial basis functions
-#%  ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+#%  ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 #%  
 #%  One can extend the basis by additional functions, implemented are variants. ``B1`` includes a constant, ``B2`` two linear functions
 #%  
@@ -81,7 +85,7 @@ using Diffusion
 
 
 #%  Reference 
-#%  ---------
+#%  ~~~~~~~~~
 
 #%  
 #%  Functions taking ``y` without parameter [a,b] expect ``y`` to be shifted into the intervall ``[0,1]``.

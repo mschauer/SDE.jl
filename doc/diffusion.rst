@@ -2,8 +2,11 @@
   
 .. |Ito| unicode:: Ito
 
-Introduction to module Diffusion
---------------------------------
+Module Diffusion
+----------------
+
+Introduction
+~~~~~~~~~~~~
 
 The functions in this module operate on three conceptual different objects, (although they 
 are currently just represented as vectors and arrays.)
@@ -24,14 +27,14 @@ and
 	length(w) = length(dw) + 1
 
 Reference 
----------
+~~~~~~~~~
 
 .. function:: brown1(u, t, n::Integer) 
 
 	Compute ``n`` equally spaced samples of 1d Brownian motion in
 	the interval ``[0,t]``, starting from point ``u``
 
-.. function:: brown1(u, t, n::Integer) 
+.. function:: brown(u, t, d::Integer, n::Integer) 
 
 	Simulate ``n`` equally spaced samples of ``d``-dimensional Brownian motion in
 	the interval ``[0,t]``, starting from point ``u``

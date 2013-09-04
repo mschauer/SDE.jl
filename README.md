@@ -5,7 +5,7 @@ This is work in progress. This package includes functionality to
 
 * simulate diffusion processes in one or more dimension
 * especially simulate vector linear processes / Ornstein-Uhlenbeck processes
-* Monte Carlo sample diffusion bridges, diffusion processes conditioned to hit a point ``v`` at a prescribed time ``T``
+* Monte Carlo sample diffusion bridges, diffusion processes conditioned to hit a point *v* at a prescribed time *T*
 * functions for transition density, mean and covariance of linear processes
 * perform Monte Carlo estimates of transition densities of general diffusion processes
 * to nonparametrically estimate the drift of a diffusion with unit diffusion coefficient
@@ -18,8 +18,8 @@ Layout
 The layout/api is still the state of flux. Currently the package contains the following modules:
 
 - **Diffusion**            Generate Ito processes and diffusions
-- **SdeNonparBayes**       Nonparametrically estimate the drift of a diffusion
-- **Schauder**             Provides rudimentary finite element methods and Schauder basis for SdeNonparBayes
+- **NonparBayes**          Nonparametrically estimate the drift of a diffusion
+- **Schauder**             Provides rudimentary finite element methods and Schauder basis for NonparBayes
 - **Lyap**                 Computes the solution of the continuous Lyapunov equation, useful for the generation of linear processes
 - **Randm**                Random symmetric, positive definite, stable matrix for testing purposes.
 - **LinProc**              Homogeneous vector linear processes with additive noise
@@ -36,10 +36,10 @@ to a higher resolution. These functions were at least tested for 1-off-errors so
 discrete subsamples of the continuous process and not approximations valid for small time steps.
 
 
-SdeNonparBayes
+NonparBayes
 --------------
 
-The producure in `SdeNonparBayes` is a Julia implementation of nonparametric Bayesian inference for
+The module  `NonparBayes` is a Julia implementation of nonparametric Bayesian inference for
 "continuously" observed one dimensional diffusion processes with unit diffusion coefficient. The drift 
 is modeled as linear combination of hierarchical Faber--Schauder basis functions with a Gaussian prior 
 on the coefficients. This incorporates a Brownian motion like prior on the drift function. The posterior is

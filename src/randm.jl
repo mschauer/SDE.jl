@@ -5,16 +5,21 @@ export randsym, randposdef, randstable, randnormal, randorth, randunitary
 #%  .. currentmodule:: Randm
 #%    
 
-#%  Introduction to module Randm
-#%  ----------------------------
+#%  Module Randm
+#%  ------------
 #%  
+#%
+#%  Introduction
+#%  ~~~~~~~~~~~~
+#%
+
 #%  Random matrices for testing purposes. I did not figure out the actual distributions
 #%  the matrices are drawn from.
 #%  
 
 
 #%  Reference 
-#%  ---------
+#%  ~~~~~~~~~
 #%  
 
 ##%  .. function:: randsym(d)

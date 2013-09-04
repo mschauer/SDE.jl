@@ -14,8 +14,11 @@ export aug, bb, brown, brown1, cumsum0, dW, dW1, dWcond, euler, ito, quvar, ydx,
 #%  .. |Ito| unicode:: Ito
 #%
 
-#%  Introduction to module Diffusion
-#%  --------------------------------
+#%  Module Diffusion
+#%  ----------------
+#%  
+#%  Introduction
+#%  ~~~~~~~~~~~~
 #%  
 #%  The functions in this module operate on three conceptual different objects, (although they 
 #%  are currently just represented as vectors and arrays.)
@@ -40,7 +43,7 @@ export aug, bb, brown, brown1, cumsum0, dW, dW1, dWcond, euler, ito, quvar, ydx,
 
 
 #%  Reference 
-#%  ---------
+#%  ~~~~~~~~~
 #%  
 #%  .. function:: brown1(u, t, n::Integer) 
 #%  

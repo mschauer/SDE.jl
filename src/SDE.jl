@@ -1,11 +1,9 @@
-include(Pkg.dir("SDE")*"/src/diffusion.jl")
-include(Pkg.dir("SDE")*"/src/schauder.jl")
-include(Pkg.dir("SDE")*"/src/sdenonparbayes.jl")
-include(Pkg.dir("SDE")*"/src/randm.jl") #for linproc
-include(Pkg.dir("SDE")*"/src/linproc.jl")
-include(Pkg.dir("SDE")*"/src/lyap.jl")
-
-
+include(Pkg.dir("SDE")*"/src/Diffusion.jl")
+include(Pkg.dir("SDE")*"/src/Schauder.jl")
+include(Pkg.dir("SDE")*"/src/SDENonparBayes.jl")
+include(Pkg.dir("SDE")*"/src/Randm.jl") 
+include(Pkg.dir("SDE")*"/src/LinProc.jl")
+include(Pkg.dir("SDE")*"/src/Lyap.jl")
 
 #placeholder
 module SDE

@@ -1,7 +1,11 @@
-.. currentmodule:: SdeNonparBayes
+.. currentmodule:: NonparBayes
   
-Introduction to module SdeNonparBayes
--------------------------------------
+Module NonparBayes
+------------------
+
+Introduction
+~~~~~~~~~~~~
+
 
 The procedure is as follows.
 Consider the diffusion process :math:`(x_t\colon 0 \le t \le T)` given by
@@ -44,7 +48,7 @@ and uses ``pickup_mu!(mu)`` and ``pickup_Sigma!(Sigma)`` to obtain :math:`\mu` a
 
 
 Optional additial basis functions
-^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
 
 One can extend the basis by additional functions, implemented are variants. ``B1`` includes a constant, ``B2`` two linear functions
 
@@ -70,7 +74,7 @@ or
 
 
 Reference 
----------
+~~~~~~~~~
 
 Functions taking ``y` without parameter [a,b] expect ``y`` to be shifted into the intervall ``[0,1]``.
 
