@@ -1,8 +1,8 @@
 function example1()
 	println("euler")
-	println(quvar(euler(0, 1, (t,x)-> -5x, (t,x) -> 1, linspace(0., 1.,1000))))
+	println(quvar(euler(0, 1, (t,x)-> -5x, (t,x) -> 1, diff(linspace(0., 1.,1000)))))
 
-	dt = linspace(0., 0.5, 100)
+	dt = diff(linspace(0., 0.5, 100))
 	dw = dW1(dt)
 
 	println("Brownian motion with drift")
@@ -17,7 +17,7 @@ function example1()
 	println("time:",toc())
 
 	tic()
-	dt2 = linspace(0., 2,5) 
+	dt2 = diff(linspace(0., 2,5))
 	println("Quadratic variation of B(0<t<2) = 2 \u2248 ", mean([quvar(ito(dW1(dt2))) for i in 1:100000]))
 	println("time:",toc())
 
