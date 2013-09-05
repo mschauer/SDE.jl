@@ -41,7 +41,10 @@ pickup!(th2)
 
 
 mu1 = NonparBayes.fe_mu(z,L, 0)
-mu1b = NonparBayes.fe_mu_c(z,L, 0)
+mu1b = mu1
+if isdefined(:fe_mu_c)
+	mu1b = NonparBayes.fe_mu_c(z,L, 0)
+end
 #mu2 = pickedup_mu(z, L)
 mu2 = NonparBayes.pickup_mu!(NonparBayes.fe_mu(z,L, 0))
 mu2b = NonparBayes.pickup_mu!(copy(mu1))

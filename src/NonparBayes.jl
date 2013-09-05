@@ -2,7 +2,6 @@ module NonparBayes
 export ex1, fex1, fex2, bayes_drift, test1, levelK, finger_pm, visualize_posterior
 using Schauder
 using Diffusion
-const libsigma = Pkg.dir("SDE", "deps", "libsigma")
 
 
 #using Winston
@@ -235,20 +234,7 @@ function fe_mu_jl(y, L, K)
 end
 
 
-#void fe_mu(double *mu, double *y, int N, int L, int K)
-function fe_mu_c(y::Vector{Float64}, L, K)
 
-	n = 2^(L-1)
-	mu = zeros(Float64,2n-1 + K)
-	N = length(y)
-	product = ccall( (:fe_mu_at, libsigma),
-                  Void,
-                  (Ptr{Float64}, Ptr{Float64}, Int32, Int32),
-                  mu, y, N, L)
-	return mu;
-end
-
-fe_mu = fe_mu_c
 
 #%  .. function:: fe_muB1(mu, y)
 #%               
@@ -367,6 +353,7 @@ end
 function fe_Sigma_at(y, dt::Float64, L)
 	n = 2^(L-1)
 	N = length(y)
+
 	S = zeros(2n-1, 2n-1)
 	
 
@@ -381,34 +368,23 @@ function fe_Sigma_at(y, dt::Float64, L)
 	S
 end
 
-#void fe_Sigma_at(double *S, double *y, int N, double dt, int L)
-function fe_Sigma_c(y::Vector{Float64}, dt::Float64, L)
-	n = 2^(L-1)
-	N = length(y)
-	S = zeros(Float64,(2n-1)^2)
-	product = ccall( (:fe_Sigma_at, Pkg.dir("SDE")*"lib/libsigma.s"),
-                  Void,
-                  (Ptr{Float64}, Ptr{Float64}, Int32, Float64, Int32),
-                  S, y, N, dt, L)
-	return reshape(S, 2n-1 , 2n-1)
-	
-end
-function fe_SigmaB1_c(y::Vector{Float64}, dt::Float64, L)
-	n = 2^(L-1)
-	N = length(y)
-	S = zeros(Float64,(2n)^2)
-	product = ccall( (:fe_SigmaB1_at, Pkg.dir("SDE")*"lib/libsigma.s"),
-                  Void,
-                  (Ptr{Float64}, Ptr{Float64}, Int32, Float64, Int32),
-                  S, y, N, dt, L)
-	return reshape(S, 2n , 2n)
-	
-end
 
 
-fe_SigmaB1 = fe_SigmaB1_c
+
+fe_mu = fe_mu_jl
+fe_Sigma = fe_Sigma_dot
+fe_SigmaB1 = fe_SigmaB1_dot
 fe_SigmaB2 = fe_SigmaB2_dot
-fe_Sigma = fe_Sigma_c
+
+#can libsigma be used?
+if find_library(["libsigma"], [Pkg.dir("SDE","deps")]) != ""
+	include("sigma.jl")
+ 
+end
+
+
+
+
 
 
 # fe_Sigma([0, 0.25, 0.5, 0.625,0], 2, 0,1, 2)
