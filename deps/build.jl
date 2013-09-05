@@ -6,7 +6,7 @@ if OS_NAME == :Windows
 #	println("Linking libsigma...")
 #	run(`gcc -shared sigma.o -o libsigma.dll`)
 #	cd(wd)
-	println("Darwin: skipping binary deps, please compile manually.")
+	println("Windows: skipping binary deps, please compile manually.")
 elseif OS_NAME == :Darwin
 	println("Darwin: skipping binary deps, using julia fallback.")
 else
