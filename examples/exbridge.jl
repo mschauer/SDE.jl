@@ -1,9 +1,7 @@
 #using Winston
- 
-require("leading.jl")
-require("linproc.jl")
-require("misc.jl")
-require("lyap.jl")
+require("SDE")
+require(Pkg.dir("SDE","src", "leading.jl"))
+require(Pkg.dir("SDE","src", "misc.jl"))
 
 d = 2 
 SV = false #save images?

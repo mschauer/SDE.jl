@@ -1,8 +1,9 @@
 require("SDE")
 using Schauder
 using Diffusion
-using NonparBayes
 using Winston
+using NonparBayes
+
 
 
 fex1(x) = 4(sin(2pi*x) - x)
