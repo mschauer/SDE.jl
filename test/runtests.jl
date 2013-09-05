@@ -9,9 +9,9 @@ include("testdiff.jl")
 include("testsch.jl")
 include("testlyap.jl")
 include("testnonpar.jl")
+include("testlinproc.jl")
 
 if test_type == "ALL"
-	include("testlinproc.jl")
 	include("extendedtestclark.jl")
 end
 

@@ -4,7 +4,7 @@ function Hquad(t, T, B, a::Function)
 	function f(s, y)
 		y[:] = vec(expm(-(s-t)*B)*a(s)*expm(-(s-t)*B)')
 	end
-	Q = reshape(hquadrature(d*d, f, t, T, 1E-15, 1E-15, 5000)[1], d,d)
+	Q = reshape(hquadrature(d*d, f, t, T; reltol=1E-15, abstol=1E-15, maxevals=5000)[1], d,d) 
 	inv(Q)
 end	
 
@@ -13,7 +13,7 @@ function varmu(h, x, B, beta)
 	function f(s, y)
 		y[:] = expm(-s*B)*beta
 	end
-	integral = Cubature.hquadrature(length(beta), f, 0, h, 1E-15, 1E-15, 800)[1]
+	integral = Cubature.hquadrature(length(beta), f, 0, h; reltol=1E-15, abstol=1E-15, maxevals=0800)[1]
 	expm(h*B)*(x + integral)
 end	
 
@@ -29,7 +29,7 @@ function Qquad(s, T, ph, B, a::Function)
 	function f(tau, y)
 		y[:] = vec(expm(ph(s,tau)*B)*a(tau)*expm(ph(s,tau)*B)')
 	end
-	Q = reshape(hquadrature(d*d, f, s, T, 1E-15, 1E-15, 5000)[1], d,d)
+	Q = reshape(hquadrature(d*d, f, s, T; reltol=1E-15, abstol=1E-15, maxevals=05000)[1], d,d)
 	Q
 end
  
@@ -37,7 +37,7 @@ function Vquad(s,T, v, ph, B, beta)
 	function f(tau, y)
 		y[:] = expm(ph(s,tau)*B)*beta(tau)
 	end
-	expm(-ph(T,s)*B)*v - hquadrature(length(v), f, s, T, 1E-15, 1E-15, 5000)[1]
+	expm(-ph(T,s)*B)*v - hquadrature(length(v), f, s, T; reltol=1E-15, abstol=1E-15, maxevals=05000)[1]
 	
 end
 

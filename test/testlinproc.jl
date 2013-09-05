@@ -63,7 +63,7 @@ for xi in [0.0 0.5]
 	@test norm(H1 - H4) < 1E-10
 	@test norm(H1 - H5) < 1E-10
 
-	@test norm(K1-K2) < d*16*eps()
+	@test norm(K1-K2) < d*24*eps()
 
 	function varr3(h, x, v, B, beta, lambda)
 		binv = inv(B)
