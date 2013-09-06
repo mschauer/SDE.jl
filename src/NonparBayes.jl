@@ -2,7 +2,7 @@ module NonparBayes
 export ex1, fex1, fex2, bayes_drift, test1, levelK, finger_pm, visualize_posterior
 using Schauder
 using Diffusion
-if contains(Pkg.available(), "Winston")
+if  haskey(Pkg.installed(), "Winston")
 	using Winston
 end
 
