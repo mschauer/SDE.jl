@@ -1,7 +1,8 @@
+module ExClark
+using SDE
 using Lyap
-
-require("linproc.jl")
-require("misc.jl")
+using LinProc
+include(joinpath("..",  "src","misc.jl"))
 
 srand(4)
 
@@ -132,7 +133,7 @@ function dens(K, N, v0, t, T, B, A)
 		if (T-t) > 0.01 #if T-t too small, lp becomes too unstable for
 			llx = LinProc.lp(T-t, x, v0, B, beta, lambda)  
 		else
-			llx = LinProc.lp0(h, x, v0, B*v0 + beta, gamma)
+			llx = LinProc.lp0(T-t, x, v0, B*v0 + beta, gamma)
 		end
 		 
  		DW = randn(2, N-1) .* sqrt(ds)
@@ -193,10 +194,11 @@ function re()
 end
 
 #rare(K, N, E, re, pe)
-println("D()=\ndens(K, N, v, t, T, B, a(T,v))")
+println("try ExClark.D()\n\t (= dens(K, N, v, t, T, B, a(T,v)))")
 
 function D()
  dens(K, N, v, 0.999*T, T, exp(-0.2*T)*bB, a(T,v))
 end	
 
 
+end

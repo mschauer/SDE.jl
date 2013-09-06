@@ -1,7 +1,9 @@
-#using Winston
-require("SDE")
-require(Pkg.dir("SDE","src", "leading.jl"))
-require(Pkg.dir("SDE","src", "misc.jl"))
+module ExBridge
+using Winston
+using SDE
+using LinProc
+include(Pkg.dir("SDE","src", "leading.jl"))
+include(Pkg.dir("SDE","src", "misc.jl"))
 
 d = 2 
 SV = false #save images?
@@ -276,4 +278,4 @@ end
 
 
 println("bridge acc %",  round(100*mean(bb)/K,2), round(100*bb/K,2), )
-#Winston.display(p[1])
+end

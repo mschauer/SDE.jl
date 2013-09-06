@@ -1,17 +1,20 @@
-require("SDE")
-using Schauder
-using Diffusion
+module ExNonpar
+using SDE
 using Winston
+using Schauder
 using NonparBayes
+using Diffusion
+#include(joinpath("..",  "src","NonparBayes.jl"))
 
 
-
-fex1(x) = 4(sin(2pi*x) - x)
-fex2(x) = -4min(x+.5, 0) - 4max(x-.5, 0)
-range(a) = (min(a), max(a))
+	fex1(x) = 4(sin(2pi*x) - x)
+	fex2(x) = -4min(x+.5, 0) - 4max(x-.5, 0)
+	range(a) = (min(a), max(a))
 
 
 function ex1(L, logN,T, f, B)
+
+
 	global y, t
 	srand(42)
 	beta = 0.5
@@ -30,11 +33,11 @@ function ex1(L, logN,T, f, B)
 
 	
 	if (B == "B1")
-		truec = fe_transfB1(x-> f(x), a,b, L)
+		truec = Schauder.fe_transfB1(x-> f(x), a,b, L)
 	elseif (B == "B2")
-		truec = fe_transfB2(x-> f(x), a,b, L)
+		truec = Schauder.fe_transfB2(x-> f(x), a,b, L)
 	else
-		truec = fe_transf(x-> f(x), a,b, L)
+		truec = Schauder.fe_transf(x-> f(x), a,b, L)
 
 	end
 	println("true drift f.e. coefficients",truec')
@@ -48,4 +51,6 @@ function ex1(L, logN,T, f, B)
  
 	(post, pl)
 end
-print("Try: post = ex1(5,5, 100, fex1, \"B2\"); post[2]")
+println("Try: post = ExNonpar.ex1(5,5, 100, ExNonpar.fex1, \"B2\"); Winston.display(post[2])")
+
+end

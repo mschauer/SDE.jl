@@ -1,4 +1,6 @@
-function example1()
+module exdiff
+using SDE
+using Diffusion
 	println("euler")
 	println(quvar(euler(0, 1, (t,x)-> -5x, (t,x) -> 1, diff(linspace(0., 1.,1000)))))
 
@@ -14,12 +16,12 @@ function example1()
 	#%discretization error of quadratic variation ?
 	tic()
 	println("Quadratic variation of B(0<t<2) = 2 \u2248 ", mean([quvar(brown1(0, 2, 5)) for i in 1:100000]))
-	println("time:",toc())
+	toc()
 
 	tic()
 	dt2 = diff(linspace(0., 2,5))
 	println("Quadratic variation of B(0<t<2) = 2 \u2248 ", mean([quvar(ito(dW1(dt2))) for i in 1:100000]))
-	println("time:",toc())
+	toc()
 
 	println("W_aug")
 	adw = aug(dw,dt,10)
@@ -30,3 +32,4 @@ function example1()
 	dx = dW1(5,3)
 	println(ito(dx .. dx)[end])
 end
+ 
