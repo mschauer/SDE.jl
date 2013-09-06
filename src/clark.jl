@@ -80,7 +80,7 @@ end
 function J2(s,T, B, A, lambda)
 # 	J is responsible for check whether B is zero
 
-	dis = square(B[1,1] - B[2,2]) + 4.0*B[1,2]*B[2,1]
+	dis = abs2(B[1,1] - B[2,2]) + 4.0*B[1,2]*B[2,1]
 	if (dis >= 0.)
 		return J1(s,T, B, A, lambda)
 	end
