@@ -60,45 +60,68 @@ X =  linexact(u, B0, beta0, lambda0, dt)
 # likelihood of true B
 llB0 =  (llikeli(X, B0, beta0, lambda0, dt))
 println("true B0")
-display(B0)
-println("\nlikelihood of true B $llB0")
+pritnln(B0)
+println("likelihood of true B ", round(llB0,3))
 
 # looks like this
 plot(X[1,:], X[2,:])
 
+# we need to parametrize stable matrices
+# matrices with eigenvalues with strictly negative real parts
+
 # stable d-dim matrix parametrized with 2d^2 numbers, real eigenvalues < 0.01
-function stable(Y, d=2)
+function stable(Y, d=2, ep=0.01)
+
+	# convert first d*(d+1)/2 values of Y into upper triangular matrix
 	# positive definite matrix
-	x = reshape(Y[1:d*d], 2,2)
-	a = x'*x 
+	x = zeros(d,d)
+	k = 1
+	for i in 1:d
+		for j in i:d
+		x[i,j] = Y[k]
+		k = k + 1
+		end
+	end
+	# convert next d*(d+1)/2 -d values of Y into anti symmetric matrix
+	y = zeros(d,d)
+	for i in 1:d
+		for j  in i+1:d
+		y[i,j] = Y[k]
+		y[j,i] = -y[i, j]
+		k = k + 1
+		end
+	end
+	assert(k -1 == d*d == length(Y))
 	
-	# anti symmetric matrix
-	above_diag =	[ i<j ? 1 : 0 for i in 1:d, j in 1:d] # nonzero pattern for above diagonal
-	y = reshape(Y[d*d+1 : 2*d*d], 2,2)
-	b = above_diag.*y - above_diag'.*y' 
-	
-	# return stable matrix
-	b - a -0.01eye(2)
+	# return stable matrix as a sum of a antisymmetric and a positive definite matrix
+	y - x'*x - ep*eye(2) 
 end
 
 function objective(Y)
-	assert(size(Y) == (8,))
+	assert(length(Y) == d*d)
 	B = stable(Y) # obtain stable matrix corresponding to numbers Y
 	lambda = lyap(B', -A)	# lambda depends on B
 	ll = try
 		-llikeli(X, B, beta0, lambda, dt)
 	catch y
-		println(y)
-		Inf
+		if isa(y, Base.PosDefException)
+			println("Skip numerical indefinite matrix .")
+			1E16			
+		elseif isa(y, Base.Singular)
+			println("Skip numerical singular matrix.")
+			1E16			
+		else 
+		 throw(y)
+		end
+
 	end
 	ll
 end
 
 
 #B=round(ml(500),3) 
-O = optimize(objective, ones(8))
+O = optimize(objective, ones(4))
 print(O)
-B = stable(O.minimum)
+B = round(stable(O.minimum),3)
 llmax = -O.f_minimum
-println(llmax, " ", llB0)
-println([B B0])
+println("Estimated B (llikelihood ",round(llmax,3),")\n",round(B,3), "\nTrue B0 (llikelihood ", round(llB0,3),")\n",B0 )
