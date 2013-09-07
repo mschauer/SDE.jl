@@ -1,7 +1,7 @@
 # homogeneous vector linear processes with additive noise
 module LinProc
 #using Randm
-export H, r, p, Bstar, Bcirc, Bsharp, eulerv, llikelixcirc
+export H, r, p, Bstar, Bcirc, Bsharp, eulerv, llikelixcirc, sample_p, lp
 include("leading.jl")
 include("misc.jl")
 #%  .. currentmodule:: LinProc

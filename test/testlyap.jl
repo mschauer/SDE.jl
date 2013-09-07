@@ -29,8 +29,8 @@ function testlyap(dims, n)
 			y = randn(d, d) .* randbool(d,d)
 			
 			
-			b = drei.*y - drei'.*y' - a2
-#			print(eigen(b))
+#			b = drei.*y - drei'.*y' - a2
+			println(eig(b)[1])
 			l = lyap(b, a)
 			sum += norm(b'*l + l*b - a)
 		end
