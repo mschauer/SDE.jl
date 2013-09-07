@@ -1,127 +1,93 @@
+# Example: Maximum-likelihood estimate of the 
+
 using SDE
 using Lyap
 using LinProc
+
 using Winston
-using Randm
 using Optim
 
 srand(7)
 d = 2 # dimension
 M = 500 #number of observations
 TT = .1*M #total time span
+
+# normalize values, returns values in interval [0,1]
 function norma!(x)
  minx = min(x)
  x = (x - minx) / (max(x)-minx)
  x
 end
-dt = diff(TT*norma!(sort!(rand(M))))
 
+grid = TT*norma!(sort!(rand(M))) # a grid of random design points in the interval [0, TT]
 
-# diffusion coefficient
+# diffusion coefficient (assumed to be known in this example)
 sigma = [ 0.9   .2; -.2  .7] 
 A = sigma*sigma'
 
 # starting point
 u = [0.,0.] 
 
-# true drift b(x) = B0*x + beta0
-B0 = [  -0.2  -1.0;  
+# true drift function, b(x) = B0*x + beta0 (unknown, used to obtain observations)
+
+B0 = [  -0.2  -1.0;  # true mean reversion matrix
 	 0.5  -0.4]
 beta0 = [0.,0.] 
 
-# many functions in LinProc expect the solution to the lyapunov equation given B0 and A as argument instead of A
-lambda0 = lyap(B0', -A)
+# many functions in LinProc expect the solution to the 
+# Lyapunov equation given B and A as argument instead of A 
 
-# simulate process
-function linexact(u, B, beta, lambda, dt)
-	X = zeros(d, M)
-	X[:,1] = u
-	for i in 1 : M-1
-		# sample from the transition probability
-		X[:,i+1] = LinProc.sample_p(dt[i], X[:,i], B, beta, lambda) 
-	end
-	X
-end
+lambda0 = lyap(B0', -A) # solves B*lambda + lambda*B' = -A
 
-# compute log likelihood
-function llikeli(X, B, beta, lambda, dt)
-	ll = 0.0
-	for i in 1 : M-1
-		ll += LinProc.lp(dt[i], X[:,i], X[:,i+1], B, beta, lambda) 
-	end
-	ll
-end
+# and many functions need the distances between the design points
 
+dt = diff(grid) 
 
 
 # simulate exact Ornstein--Uhlenbeck process with parameter B0, beta0, A (lambda0)
 X =  linexact(u, B0, beta0, lambda0, dt)
 
-# likelihood of true B
-llB0 =  (llikeli(X, B0, beta0, lambda0, dt))
-println("true B0")
-pritnln(B0)
-println("likelihood of true B ", round(llB0,3))
+# as comparison: loglikelihood of true B
+llB0 =  linll(X, B0, beta0, lambda0, dt)
+println("True mean reversion matrix B0")
+print(B0)
+println("Likelihood of B0 ", round(llB0,3))
 
 # looks like this
+println("Plotting observations")
 plot(X[1,:], X[2,:])
 
-# we need to parametrize stable matrices
-# matrices with eigenvalues with strictly negative real parts
 
-# stable d-dim matrix parametrized with 2d^2 numbers, real eigenvalues < 0.01
-function stable(Y, d=2, ep=0.01)
-
-	# convert first d*(d+1)/2 values of Y into upper triangular matrix
-	# positive definite matrix
-	x = zeros(d,d)
-	k = 1
-	for i in 1:d
-		for j in i:d
-		x[i,j] = Y[k]
-		k = k + 1
-		end
-	end
-	# convert next d*(d+1)/2 -d values of Y into anti symmetric matrix
-	y = zeros(d,d)
-	for i in 1:d
-		for j  in i+1:d
-		y[i,j] = Y[k]
-		y[j,i] = -y[i, j]
-		k = k + 1
-		end
-	end
-	assert(k -1 == d*d == length(Y))
-	
-	# return stable matrix as a sum of a antisymmetric and a positive definite matrix
-	y - x'*x - ep*eye(2) 
-end
+# objective function for maximum likelihood
 
 function objective(Y)
-	assert(length(Y) == d*d)
-	B = stable(Y) # obtain stable matrix corresponding to numbers Y
+
+	assert(length(Y) == d*d) # Y is a vector of length d*d parametrizing all stable matrices B	
+	B = LinProc.stable(Y, d, 0.02) # obtain stable matrix with eigenvalues with real part < 0.02 corresponding to numbers in Y
 	lambda = lyap(B', -A)	# lambda depends on B
-	ll = try
-		-llikeli(X, B, beta0, lambda, dt)
-	catch y
+
+	ob =  #minimize likelihood
+	try
+		-linll(X, B, beta0, lambda, dt) # negative discrete observations loglikelihood
+	catch y #catch numerical singularies
 		if isa(y, Base.PosDefException)
-			println("Skip numerical indefinite matrix .")
-			1E16			
+			println("Skip numerical indefinite matrix")
+			1.0E16 # move away! 			
 		elseif isa(y, Base.Singular)
-			println("Skip numerical singular matrix.")
-			1E16			
+			println("Skip numerical singular matrix")
+			1.0E16	# move away!		
 		else 
 		 throw(y)
 		end
 
 	end
-	ll
+	ob
 end
 
-
-#B=round(ml(500),3) 
+# find maximum likelihood estimate for B
+println("Maximize likelihood...") 
 O = optimize(objective, ones(4))
-print(O)
-B = round(stable(O.minimum),3)
+println(O)
+B = round(LinProc.stable(O.minimum,2,0.02),3)
 llmax = -O.f_minimum
-println("Estimated B (llikelihood ",round(llmax,3),")\n",round(B,3), "\nTrue B0 (llikelihood ", round(llB0,3),")\n",B0 )
+print("\nEstimated mean reversion matrix B (log-likelihood ",round(llmax,3),")\n",round(B,3), "\nTrue B0 (log-likelihood ", round(llB0,3),")\n",B0 )

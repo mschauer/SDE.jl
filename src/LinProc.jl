@@ -1,7 +1,7 @@
 # homogeneous vector linear processes with additive noise
 module LinProc
 #using Randm
-export H, r, p, Bstar, Bcirc, Bsharp, eulerv, llikelixcirc, sample_p, lp
+export H, r, p, Bstar, Bcirc, Bsharp, eulerv, llikelixcirc, sample_p, lp, linexact, linll
 include("leading.jl")
 include("misc.jl")
 #%  .. currentmodule:: LinProc
@@ -226,6 +226,39 @@ function sample_p(h, x, B, beta, lambda)
 	mu + l*z
 end
 
+#%  .. function:: linexact(u, B, beta, lambda, dt)
+#%               
+#%  	Simulate linear process starting in `u` on a discrete grid `dt` from its transition probability,
+#%  	corresponding to drift parameters `B`, `beta` and Lyapunov matrix `lambda`.
+#%  
+
+function linexact(u, B, beta, lambda, dt)
+	M = length(dt)+1
+	X = zeros(length(u), M)
+	X[:,1] = u
+	for i in 1 : M-1
+		# sample from the transition probability
+		X[:,i+1] = sample_p(dt[i], X[:,i], B, beta, lambda) 
+	end
+	X
+end
+
+#%  .. function:: linll(X, B, beta, lambda, dt)
+#%               
+#%  	Compute log likelihood evaluated in `B`, `beta` and Lyapunov matrix `lambda`
+#%  	for a observed linear process on a discrete grid `dt` from its transition density.
+#%  
+
+function linll(X, B, beta, lambda, dt)
+	M = size(X)[end]
+	ll = 0.0
+	for i in 1 : M-1
+		ll += lp(dt[i], X[:,i], X[:,i+1], B, beta, lambda) 
+	end
+	ll
+end
+
+
 
 #%  .. function:: lp0(h, x, y,  mu, gamma)
 #%               
@@ -294,5 +327,44 @@ end
 
 
 include("clark.jl")
+
+
+#%  .. function:: stable(Y, d, ep)
+#%               
+#% 	Return real stable `d`-dim matrix with real eigenvalues smaller than `ep` parametrized with a vector of length `d*d`, 
+#%  
+#%  
+#%  	For maximum likelihood estimation we need to search the maximum over all stable matrices.
+#%	These are matrices with eigenvalues with strictly negative real parts.
+#%	We obtain a dxd stable matrix as difference of a antisymmetric matrix and a positive definite matrix.
+
+
+function stable(Y, d, ep)
+
+	# convert first d*(d+1)/2 values of Y into upper triangular matrix
+	# positive definite matrix
+	x = zeros(d,d)
+	k = 1
+	for i in 1:d
+		for j in i:d
+		x[i,j] = Y[k]
+		k = k + 1
+		end
+	end
+	# convert next d*(d+1)/2 -d values of Y into anti symmetric matrix
+	y = zeros(d,d)
+	for i in 1:d
+		for j  in i+1:d
+		y[i,j] = Y[k]
+		y[j,i] = -y[i, j]
+		k = k + 1
+		end
+	end
+	assert(k -1 == d*d == length(Y))
+	
+	# return stable matrix as a sum of a antisymmetric and a positive definite matrix
+	y - x'*x - ep*eye(2) 
+end
+
 
 end #linproc
