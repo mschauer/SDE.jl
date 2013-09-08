@@ -105,7 +105,7 @@ end
 
 #%  .. function:: H(h, B, lambda)
 #%               
-#%  	Negative Hessian of :math:`\log p(t,x; T, v) as a function of x.
+#%  	Negative Hessian of :math:`\log p(t,x; T, v)` as a function of ``x``.
 #%  	
 
 function H(h, B, lambda)
@@ -162,11 +162,14 @@ end
 #%  .. function:: llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 #%               
 #%  	Loglikelihood (log weights) of Xcirc with respect to Xstar.
+#%  
 #%  		t, T -- timespan
 #%  		Xcirc -- bridge proposal (drift Bcirc and diffusion coefficient sigma) 
 #%  		b, sigma -- diffusion coefficient sigma target
 #%  		B, beta -- drift b(x) = Bx + beta of Xtilde
 #%  		lambda -- solution of the lyapunov equation for Xtilde
+#%  
+
 
 function llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 	N = size(Xcirc,2)
@@ -294,6 +297,7 @@ end
 #%  		Dt = diff(linspace(0., T, N))
 #%  		DW = randn(2, N-1) .* sqrt(dt)
 #%  		dt = Dt[1] yy = euler(0.0, u, b, sigma, Dt, DW)
+#%  
 		
 
 eulerv(t0, u, b, sigma, dt, dw::Matrix) = eulerv(t0, u, NaN, b, sigma, dt, dw::Matrix)
@@ -337,6 +341,7 @@ include("clark.jl")
 #%  	For maximum likelihood estimation we need to search the maximum over all stable matrices.
 #%	These are matrices with eigenvalues with strictly negative real parts.
 #%	We obtain a dxd stable matrix as difference of a antisymmetric matrix and a positive definite matrix.
+#%  
 
 
 function stable(Y, d, ep)
