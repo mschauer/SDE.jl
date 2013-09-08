@@ -109,7 +109,7 @@ println("Plotting observations")
 plot(X[1,:], X[2,:])
 
 ```
-[![Image](Julia plot of X)](https://raw.github.com/mschauer/SDE.jl/master/doc/exou.jl.png)
+![Julia plot of X](https://raw.github.com/mschauer/SDE.jl/master/doc/exou.jl.png)
 
 We now proceed to estimate the mean reversion matrix `B0` from the observations:
 
