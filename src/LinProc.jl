@@ -335,7 +335,7 @@ include("clark.jl")
 
 #%  .. function:: stable(Y, d, ep)
 #%               
-#% 	Return real stable `d`-dim matrix with real eigenvalues smaller than `ep` parametrized with a vector of length `d*d`, 
+#% 	Return real stable `d`-dim matrix with real eigenvalues smaller than `-ep` parametrized with a vector of length `d*d`, 
 #%  
 #%  
 #%  	For maximum likelihood estimation we need to search the maximum over all stable matrices.
