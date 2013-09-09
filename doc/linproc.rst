@@ -67,7 +67,7 @@ Reference
 
 .. function:: H(h, B, lambda)
              
-	Negative Hessian of :math:`\log p(t,x; T, v) as a function of x.
+	Negative Hessian of :math:`\log p(t,x; T, v)` as a function of ``x``.
 	
 .. function:: bstar(T, v, b, beta, a, lambda)
              
@@ -80,11 +80,13 @@ Reference
 .. function:: llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
              
 	Loglikelihood (log weights) of Xcirc with respect to Xstar.
+
 		t, T -- timespan
 		Xcirc -- bridge proposal (drift Bcirc and diffusion coefficient sigma) 
 		b, sigma -- diffusion coefficient sigma target
 		B, beta -- drift b(x) = Bx + beta of Xtilde
 		lambda -- solution of the lyapunov equation for Xtilde
+
 .. function:: lp(h, x, y, b, beta, lambda)
              
 	Returns :math:`log p(t,x; T, y)`, the log transition density of the linear process, h = T - t 
@@ -92,6 +94,16 @@ Reference
 .. function:: sample_p(h, x, b, beta, lambda) 
              
 	Samples from the transition density of the linear process, h = T - t. 
+
+.. function:: linexact(u, B, beta, lambda, dt)
+             
+	Simulate linear process starting in `u` on a discrete grid `dt` from its transition probability,
+	corresponding to drift parameters `B`, `beta` and Lyapunov matrix `lambda`.
+
+.. function:: linll(X, B, beta, lambda, dt)
+             
+	Compute log likelihood evaluated in `B`, `beta` and Lyapunov matrix `lambda`
+	for a observed linear process on a discrete grid `dt` from its transition density.
 
 .. function:: lp0(h, x, y,  mu, gamma)
              
@@ -116,3 +128,13 @@ Reference
 		Dt = diff(linspace(0., T, N))
 		DW = randn(2, N-1) .* sqrt(dt)
 		dt = Dt[1] yy = euler(0.0, u, b, sigma, Dt, DW)
+
+.. function:: stable(Y, d, ep)
+             
+	Return real stable `d`-dim matrix with real eigenvalues smaller than `ep` parametrized with a vector of length `d*d`, 
+
+
+	For maximum likelihood estimation we need to search the maximum over all stable matrices.
+	These are matrices with eigenvalues with strictly negative real parts.
+	We obtain a dxd stable matrix as difference of a antisymmetric matrix and a positive definite matrix.
+
