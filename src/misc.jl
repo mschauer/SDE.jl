@@ -16,6 +16,16 @@ assert(length(x) == 1)
 x[1]
 end
 
+function norma!(x)
+ minx = min(x)
+ x = (x - minx) / (max(x)-minx)
+ x
+end
+
+
+function cut(x, a, b)
+  min(max(a, x), b)
+end
 #compute normal confidence interval for Monte Carlo estimate, precision aware rounding
 
 function mc(M)
