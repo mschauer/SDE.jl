@@ -146,7 +146,7 @@ end
 #%  	
 
 function bstar(T, v, B, beta, a, lambda)
-	(t,x) -> B*x + beta + a * H(T-t, B, lambda)*(V(T-t, v, b, beta)-x)
+	(t,x) -> B*x + beta + a * H(T-t, B, lambda)*(V(T-t, v, B, beta)-x)
 end	
 
 #%  .. function:: bcirc(T, v, b, beta, a, lambda)
