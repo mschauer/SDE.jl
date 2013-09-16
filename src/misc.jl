@@ -37,6 +37,9 @@ end
 #for sequential estimates, it suffices to provide the running sum Z, running sum of squares Z2 and the number of observations k
 
 
+va(k, Z, Z2) =  Z2/k-(Z/k)^2
+ste(k, Z, Z2) = sqrt(Z2/k^2-(Z/k)^2/k)
+
 function mc2(k, Z, Z2)
 	m = Z/k
 	
@@ -54,21 +57,24 @@ function mc2(k, Z, Z2)
 	end
 	
 end
-function mc3(k, Z, Z2)
-	m = Z/k
-	
+
+
+
+
+#stdv(k, Z, Z2) = va(k, Z, Z2)/k
+# X = [ZL, L]
+# X2 = X * X'	
+
+function selfadjmc(k, X, X2)
+	m = X[1]/X[2]
+	v = (va(k, X[1], X2[1,1]) - 2m*(X2[1,2]/k - X[1]*X[2]/k^2) + m^2*va(k, X[2], X2[2,2]))/k
+	println([va(k, X[1], X2[1,1]), - 2m*(X2[1,2]/k - X[1]*X[2]/k^2),m^2*va(k, X[2], X2[2,2])])
 	try
-		va  = sqrt(norm(Z2)/k-norm(m).^2)
-		ste = sqrt(Z2/k-m.^2)/sqrt(k)
-	
-		res = [m, Q95*ste,round(va, 2- int(log(10,va)))]
-		for i in 1:length(m)
-			res[2i-1] = round(res[2i-1], 2- int(log(10,Q95*ste[i])))
-			res[2i] = round(res[2i], int(round(2-log(10,Q95*ste[i]))))
-		end
+		ste = sqrt(v)
+		res = [m, Q95*ste]
 		return res
 	catch
-		return [m, NaN.*m, NaN]
+		return [m, NaN.*m]
 	end
 	
 end
