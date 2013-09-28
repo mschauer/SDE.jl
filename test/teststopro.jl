@@ -1,8 +1,8 @@
-include("StoPro.jl")
+include("../src/StoPro.jl")
 using Distributions
 using StoPro
 srand(8)
-# sum([ norm(mean([ sample(Wiener(d),  linspace(0.,2.,5)).X[1,end] for i in 1:n])) for j in 1:1000] .< r*sqrt(2/n)) 
+# sum([ norm(mean([ sample(MvWiener(d),  linspace(0.,2.,5)).X[1,end] for i in 1:n])) for j in 1:1000] .< r*sqrt(2/n)) 
 #tests with alpha 0.01
 
 
@@ -13,11 +13,11 @@ d= 2
 r = sqrt(quantile(Distributions.Chisq(d), 0.99))
 
 
-#  call 'sample(Wiener(d), t).X[:,i]' n times
+#  call 'sample(MvWiener(d), t).X[:,i]' n times
 function Wn(d, t, n, i)
  wn = zeros(d, n)
  for j in 1:n
-   wn[:, j] = sample(Wiener(d), t ).X[:,i]
+   wn[:, j] = sample(MvWiener(d), t ).X[:,i]
  end
  wn
 end
@@ -25,15 +25,15 @@ end
 function Bn(d, u, v, t, n, i)
  wn = zeros(d, n)
  for j in 1:n
-   wn[:, j] = samplebridge(Wiener(d), u, v, t ).X[:,i]
+   wn[:, j] = samplebridge(MvWiener(d), u, v, t ).X[:,i]
  end
  wn
 end
  
-@Test.test size(sample(Wiener(d),  linspace(3.,4.,2)).X) == (d,2)
+@Test.test size(sample(MvWiener(d),  linspace(3.,4.,2)).X) == (d,2)
  
 # the mean and variance of a Brownian motion at t=2 is 0 and 2
-@Test.test norm(mean([ sample(Wiener(d),  linspace(0.,2.,5)).X[:,end] for i in 1:n])) < r*sqrt(2/n) #scale with std(W_2)/sqrt(n)
+@Test.test norm(mean([ sample(MvWiener(d),  linspace(0.,2.,5)).X[:,end] for i in 1:n])) < r*sqrt(2/n) #scale with std(W_2)/sqrt(n)
 chiupper =  quantile(Distributions.Chisq(n), 0.995) #upper 0.005 percentile  
 chilower = quantile(Distributions.Chisq(n), 0.005) #lower 0.005 percentile  
 @Test.test chiupper >n*var( Wn(1, linspace(0.,2.,5), n, 5))/2 > chilower
@@ -45,7 +45,7 @@ chilower = quantile(Distributions.Chisq(n), 0.005) #lower 0.005 percentile
 
 
 # a "deterministic" bridge with only start end endpoint
-@Test.test (global t1 = norm(samplebridge(Wiener(2), [1.,2.], [5.,7.], linspace(1.,4.,2)).X - [1. 5.; 2. 7.])) < eps(10.)
+@Test.test (global t1 = norm(samplebridge(MvWiener(2), [1.,2.], [5.,7.], linspace(1.,4.,2)).X - [1. 5.; 2. 7.])) < eps(10.)
 
 # Check that the bridge has the right mean and Variance
 
@@ -59,7 +59,7 @@ chilower = quantile(Distributions.Chisq(n), 0.005) #lower 0.005 percentile
 @Test.test quantile(Distributions.Chisq(n),  0.005) < n*var(Bn(1,[1.], [5.],[0.1, 0.3, 0.5, 3.], n, 3),2 )[1]/0.345  <  quantile(Distributions.Chisq(n), 0.995)
 
 N = sample(PoissonProcess(1.), 0, 0., 10.1)
-V = sample(Wiener(2), 0., linspace(0,1,5))
+V = sample(MvWiener(2), 0., linspace(0,1,5))
 Vaug = augment( V, [0.3, 1., 10.])
 dump(Vaug)
 #julia> var(Bn(2,[1.,2.], [5.,7.],[0.1, 0.3, 0.5, 3.], 100000, 3),2 )
@@ -70,5 +70,5 @@ dump(Vaug)
 
 
 #W =  cumsum(dW,2) + (v .- sum(dW,2))*(t'.-t[1])/(t[end] - t[1]); VecPath(P, t, W)
-#var([ sample(Wiener(2), zeros(2), linspace(0.,1.,3)).X[1,end] for i in 1:1000000]) \approx 1
+#var([ sample(MvWiener(2), zeros(2), linspace(0.,1.,3)).X[1,end] for i in 1:1000000]) \approx 1
 

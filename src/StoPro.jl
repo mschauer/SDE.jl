@@ -2,52 +2,76 @@ module StoPro
 using Distributions
 using NumericExtensions
 #import getindex, setindex!
-export Wiener, PoissonProcess, DX, sample, samplebridge, law, at, augment
+export MvWiener, PoissonProcess, DX, sample, samplebridge, law, at, augment
 
-abstract ValueSupport
-type Discrete <: ValueSupport end
-type Continuous <: ValueSupport end
+import Distributions.VariateForm
+import Distributions.ValueSupport
+typealias StateSpace ValueSupport
 
-# we take all integer valued process 1-dimensional and real valued process d-dimensional
+
+abstract IndexSet
+type DiscreteTime <: IndexSet end
+type ContinuousTime <: IndexSet end
+
+# possible extensions:
+#type GeneralStateSpace <: StateSpace end
+#type GeneralIndexSet <: IndexSet end
+
 
 
 # T time E type of elements of state vector
-abstract StochasticProcess{T<:ValueSupport, E}
+abstract StochasticProcess{T<:IndexSet, E<:StateSpace, V<:VariateForm}
+
+# Systematic aliases
+typealias DTChain StochasticProcess{DiscreteTime, Discrete, Univariate}
+typealias CTChain StochasticProcess{ContinuousTime, Discrete, Univariate}
+typealias DTProcess StochasticProcess{DiscreteTime, Continuous, Univariate}
+typealias CTProcess StochasticProcess{ContinuousTime, Continuous, Univariate}
+typealias CTVecProc StochasticProcess{ContinuousTime, Continuous, Multivariate}
+typealias DTVecProc StochasticProcess{DiscreteTime, Continuous, Multivariate}
+
+# Further aliases
+typealias TimeSeries DTProcess
+typealias MvTimeSeries DTVecProc
+
+
 
 # generic sample path
 abstract GenSamplePath
-typealias Chain StochasticProcess{Discrete,Int}
 
-abstract  VecProc  <: StochasticProcess{Continuous, Float64}
-abstract  DiscreteProc  <: StochasticProcess{Continuous, Int}
 
-type Wiener <: VecProc
-	d :: Int	
-	 Wiener(d::Integer) = d < 1 ? error("illegal dimension") : new(d)
-end
 
-type PoissonProcess <: DiscreteProc
- 	lambda :: Float64
-	PoissonProcess(lambda :: Float64) = new(lambda)
-end
 
+# type for path for which all jumps are a.s. 0 or 1
 type CountingProcessPath  <:  GenSamplePath
-	P :: DiscreteProc
-	t :: Array{Float64,1}
-	N :: Array{Int, 1}
-	#for conditioning and augmentation the we have to differentiate between knowing the processes at time t and knowing the process and that there is a jump at time t
-	jump :: BitArray{1} 
-
+	P :: CTChain
+	t :: Array{Float64,1} #t contains the times of actual jumps of 1 = N[i+1]-N[i]  
+				# and "observations" at times t[i] with 0 = N[i+1]-N[i]  
+				# time intervals t[i] t[i+1] with N[i+1]-N[i] > 1 indicate unknown location of jumps of size 1, not as instantanious jump of size > 1
+	N :: Array{Int64, 1}
 end 
 
 type VecPath  <:  GenSamplePath
-	P :: VecProc
+	P :: CTVecProc
 	t :: Array{Float64,1}
 	X :: Array{Float64,2}
 
 end 
 
+getindex(V::CountingProcessPath, I) = (V.t[I], V.X[I])
 getindex(V::VecPath, I) = (V.t[I], V.X[:,I])
+
+
+type MvWiener <: CTVecProc
+	d :: Int	
+	 MvWiener(d::Integer) = d < 1 ? error("illegal dimension") : new(d)
+end
+
+type PoissonProcess <: CTChain
+ 	lambda :: Float64
+	PoissonProcess(lambda :: Float64) = new(lambda)
+end
+
 
 function setindex!(V::VecPath,y, I) 
 	V.t[I],V.X[:,I] = y 
@@ -58,13 +82,13 @@ end
 
 
 type SamplePathChain <:  GenSamplePath
-	P :: Chain
+	P :: CTChain
 	t :: Array{Float64,1}
-	X :: Array{Int,1}
+	X :: Array{Int64,1}
 end
 
 type DX <: GenSamplePath
-	P :: VecProc 
+	P :: CTVecProc 
 	dt :: Array{Float64,1}
 	dX :: Array{Float64,2}
 end
@@ -87,8 +111,8 @@ function at(C :: CountingProcessPath, t0::Float64)
 	i = searchsortedlast(C.t, t0) #i == 0 throws bounds error 
 
 	if C.t[i] != t0
-		if (i == length(C.t)) || (C.N[i+1] - C.N[i] == 1 && !C.jump[i+1]) || (C.N[i+1] - C.N[i] > 1)
-	 		error("can't locate jump between $(C.t[i]) and $t0")
+		if (i == length(C.t)) || (C.N[i+1] - C.N[i] > 1)
+	 		warning("possible jumps between $(C.t[i]) and $t0")
 	 	end 
 	end
 		
@@ -115,15 +139,13 @@ function samplebridge(P::PoissonProcess, t1, n1, t2, n2; jumpend = true)
 	  
 	
 	N = collect(n1:n2+1)
-	jump = !(BitArray(length(N)))
 	if (!jumpend)
 	 	N[end] -= 1
-		jump[end] = false
 	end
-	CountingProcessPath(P, cumsum!(dt), N , jump)
+	CountingProcessPath(P, cumsum!(dt), N)
 end
 
-############ Wiener process ########################
+############ MvWiener process ########################
 
 
 function augment(W :: VecPath, s) 
@@ -181,28 +203,28 @@ function augment(W :: VecPath, s)
 end
 
 
-function law(W::Wiener, u, t)
+function law(W::MvWiener, u, t)
 	assert(dim(u) == d)
 	IsoNormal(u, t)
 end 
 
-function dim(W::Wiener)
+function dim(W::MvWiener)
 	W.d
 end
  
-function sample(P::Wiener, u, t)
+function sample(P::MvWiener, u, t)
 	dt = [0.0, diff(t)]
 	assert( min(dt) >= 0.0, "t linearly ordered")
 	dW = randn(dim(P),length(dt)) .* sqrt(dt)'
 	dW[:,1] = u
 	VecPath(P, t, cumsum!(dW,2) )
 end
-function sample(P::Wiener, t) 
+function sample(P::MvWiener, t) 
 	sample(P, zeros(dim(P)), t) 
 end
  	
 
-function samplebridge(P::Wiener, u, v, t)
+function samplebridge(P::MvWiener, u, v, t)
 	dt = [0.0, diff(t)]
 	assert( min(dt) >= 0.0, "t linearly ordered")
 	dW = randn(dim(P),length(dt)) .* sqrt(dt)'
