@@ -59,7 +59,7 @@ chilower = quantile(Distributions.Chisq(n), 0.005) #lower 0.005 percentile
 @Test.test quantile(Distributions.Chisq(n),  0.005) < n*var(Bn(1,[1.], [5.],[0.1, 0.3, 0.5, 3.], n, 3),2 )[1]/0.345  <  quantile(Distributions.Chisq(n), 0.995)
 
 N = sample(PoissonProcess(1.), 0, 0., 10.1)
-V = sample(MvWiener(2), 0., linspace(0,1,5))
+V = sample(MvWiener(2), zeros(2), linspace(0,1,5))
 Vaug = augment( V, [0.3, 1., 10.])
 dump(Vaug)
 #julia> var(Bn(2,[1.,2.], [5.,7.],[0.1, 0.3, 0.5, 3.], 100000, 3),2 )
