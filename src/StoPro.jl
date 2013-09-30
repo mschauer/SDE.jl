@@ -165,6 +165,26 @@ function DW!(V::GenVecProcPath,  u::Vector)
 end
 
 
+function sample!(P::VecProc, u::Vector, V::GenVecProcPath)
+	DW!(V.X, u, V.t)
+	transformdw!(P, V)
+end
+
+ 	
+function sample(P::VecProc, u::Vector, t::Vector)
+	dW = DW(u, t)
+	transformdw!(P, dW)
+end
+
+function sample(P::VecProc, t) 
+	sample(P, zeros(dim(P)), t) 
+end
+ 	
+
+function dim(V::VecProc)
+	V.d
+end
+
 
 
 ############ Poisson process ########################
@@ -220,18 +240,14 @@ function law(W::MvWiener, u, t)
 	IsoNormal(u, t)
 end 
 
-function dim(V::VecProc)
-	V.d
-end
 
-
-function transform_noise!(P::MvWiener, V::GenVecProcPath)
+function transformdw!(P::MvWiener, V::GenVecProcPath)
 	cumsum!(V.X,2)
 	V
 end
 
 
-function transform_noise!(P::MvWienerBridge, V :: GenVecProcPath)
+function transformdw!(P::MvWienerBridge, V :: GenVecProcPath)
 	assert(P.T == V.t[end])
 	u = V.X[:, 1]
  	V.X[:] = V.X .+ (P.v - sum(V.X,2))*diff0(V.t)'/(P.T - V.t[1])
@@ -239,52 +255,24 @@ function transform_noise!(P::MvWienerBridge, V :: GenVecProcPath)
 	V
 end
 
-function sample!(P::VecProc, u::Vector, V::GenVecProcPath)
-	DW!(V.X, u, V.t)
-	transform_noise!(P, V)
-end
-
- 	
-function sample(P::VecProc, u::Vector, t::Vector)
-	dW = DW(u, t)
-	transform_noise!(P, dW)
-end
-
-function sample(P::VecProc, t) 
-	sample(P, zeros(dim(P)), t) 
-end
- 	
-
-#function sample!(P::MvWiener, u::Vector, V::GenVecProcPath)
-#	DW!(V.X, u, V.t)
-#	cumsum!(V.X,2)
-#	V	
-#end
-# 	
-#function sample(P::MvWiener, u, t)
-#	dW = DW(u, t)
-#	cumsum!(dW.X,2)
-#	dW
-#end
-
+ 
 
 function samplebridge(P::MvWiener, u, v, t)
 	dW = DW(u, t)
-	transform_noise!(MvWienerBridge(t[end], v), dW)
+	transformdw!(MvWienerBridge(t[end], v), dW)
   	dW
 end
 function samplebridge!(P::MvWiener, u, v, V::GenVecProcPath)
 	DW!(V.X, u, V.t)
-	transform_noise!(MvWienerBridge(V.t[end], v),V)
+	transformdw!(MvWienerBridge(V.t[end], v),V)
 	V
 end
 
-
+############ Retrospective subsampling of time  ########################
 
 function augment(P::VecProc, W :: GenVecProcPath, s) 
-	t = W.t #alias
+	t = W.t 
 	assert(issorted(s))
-#	assert(min(t) <= min(s))  
 	n = length(t)
 	m = length(s)
 
@@ -300,8 +288,6 @@ function augment(P::VecProc, W :: GenVecProcPath, s)
 			Wnew.t[n + i : n + m] = s[i:m] #copy remaining time points
 
 			#forward simulate from W.X[:, n] and append
-			#B = sample(P, W.X[:, n], Wnew.t[n + i-1 : n + m] ) 
-			#Wnew.X[:, n + i-1 : n + m] = B.X  
 			sample!(P,  W.X[:, n], sub(Wnew, n + i-1 : n + m))
 			
 			break #s exhausted too
@@ -319,8 +305,6 @@ function augment(P::VecProc, W :: GenVecProcPath, s)
 			Wnew.t[j + i2 + 1] = t[j+1]  
  
 		  	# sample bridge from W[j] to W[j+1] using those timepoints
-	#	  	B = samplebridge(P, W.X[:, j], W.X[:, j+1], Wnew.t[j + i - 1 : j + i2 + 1])
-	#		Wnew.X[:,j + i - 1 : j + i2 + 1] = B.X
 			samplebridge!(P,  W.X[:, n], W.X[:, j+1], sub(Wnew,j + i - 1 : j + i2 + 1))
 		
  			j += 1
