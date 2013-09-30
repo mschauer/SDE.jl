@@ -2,16 +2,13 @@ module StoPro
 using Distributions
 using NumericExtensions
 #import getindex, setindex!
-export MvWiener, PoissonProcess, DX, sample, samplebridge, law, at, augment
+export MvWiener, PoissonProcess, diff1, sample!, sample, samplebridge, law, at, augment
 
 import Distributions.VariateForm
 import Distributions.ValueSupport
+import Base.sub
+import NumericExtensions.cumsum!
 typealias StateSpace ValueSupport
-
-
-abstract IndexSet
-type DiscreteTime <: IndexSet end
-type ContinuousTime <: IndexSet end
 
 # possible extensions:
 #type GeneralStateSpace <: StateSpace end
@@ -20,80 +17,103 @@ type ContinuousTime <: IndexSet end
 
 
 # T time E type of elements of state vector
-abstract StochasticProcess{T<:IndexSet, E<:StateSpace, V<:VariateForm}
-abstract GenSamplePath{T<:IndexSet, E<:StateSpace, V<:VariateForm}
+abstract StochasticProcess{E<:StateSpace, V<:VariateForm}
+abstract GenSamplePath{E<:StateSpace, V<:VariateForm}
 
 
 
 # Systematic aliases
-typealias DTChain StochasticProcess{DiscreteTime, Discrete, Univariate}
-typealias CTChain StochasticProcess{ContinuousTime, Discrete, Univariate}
-typealias DTProcess StochasticProcess{DiscreteTime, Continuous, Univariate}
-typealias CTProcess StochasticProcess{ContinuousTime, Continuous, Univariate}
-typealias CTVecProc StochasticProcess{ContinuousTime, Continuous, Multivariate}
-typealias DTVecProc StochasticProcess{DiscreteTime, Continuous, Multivariate}
+typealias Chain StochasticProcess{ Discrete, Univariate}
+typealias RealProcess StochasticProcess{ Continuous, Univariate}
+typealias VecProc StochasticProcess{ Continuous, Multivariate}
 
-typealias GenDTChainPath GenSamplePath{DiscreteTime, Discrete, Univariate}
-typealias GenCTChainPath GenSamplePath{ContinuousTime, Discrete, Univariate}
-typealias GenDTProcessPath GenSamplePath{DiscreteTime, Continuous, Univariate}
-typealias GenCTProcessPath GenSamplePath{ContinuousTime, Continuous, Univariate}
-typealias GenCTVecProcPath GenSamplePath{ContinuousTime, Continuous, Multivariate}
-typealias GenDTVecProcPath GenSamplePath{DiscreteTime, Continuous, Multivariate}
+typealias GenChainPath GenSamplePath{ Discrete, Univariate}
+typealias GenRealProcessPath GenSamplePath{ Continuous, Univariate}
+typealias GenVecProcPath GenSamplePath{ Continuous, Multivariate}
 
-# Further aliases
-typealias TimeSeries DTProcess
-typealias MvTimeSeries DTVecProc
-
+ 
 
 
 # helper functions
 
 
 #reversible diff
-diff1(t) = [t[1], diff(t)]
-#differential linspace
-dlin(t, n::Integer) = ones(n)*(t/n)
+diff1(a::StridedVector) = [i > 1 ? a[i] - a[i-1] : a[1] for i=1:length(a) ]
+diff0(a::StridedVector) = [i > 1 ? a[i] - a[i-1] : zero(a[1]) for i=1:length(a) ]
 
+
+#differential linspace
+function dlin(t, T, n::Integer) 
+	dt = ones(n)*(t/(n-1))
+	dt[1] = t
+	dt
+end
 
 
 
 # type for path for which all jumps are a.s. 0 or 1
-type CountingProcessPath  <:  GenCTChainPath
+type CountingProcessPath  <:  GenChainPath
 	t :: Array{Float64,1} #t contains the times of actual jumps of 1 = N[i+1]-N[i]  
 				# and "observations" at times t[i] with 0 = N[i+1]-N[i]  
 				# time intervals t[i] t[i+1] with N[i+1]-N[i] > 1 indicate unknown location of jumps of size 1, not as instantanious jump of size > 1
 	N :: Array{Int64, 1}
 end 
 
-type CTVecPath  <:  GenCTVecProcPath
+type VecProcPath  <:  GenVecProcPath
 	t :: Array{Float64,1}
 	X :: Array{Float64,2}
 end 
 
-type SubCTVecPath  <:  GenCTVecProcPath
+type SubVecProcPath  <:  GenVecProcPath
 	t :: SubArray{Float64,1}
 	X :: SubArray{Float64,2}
 end 
 
 
 
-getindex(V::GenCTChainPath, I) = (V.t[I], V.X[I])
-getindex(V::GenCTVecProcPath, I) = (V.t[I], V.X[:,I])
+getindex(V::GenChainPath, I) = (V.t[I], V.X[I])
+getindex(V::GenVecProcPath, I) = (V.t[I], V.X[:,I])
 
-function setindex!(V::GenCTVecPath,y, I) 
+function setindex!(V::GenVecProcPath,y, I) 
 	V.t[I],V.X[:,I] = y 
 end
-function slice(V::GenCTVecPath, I) 
-	SubCTVecPath(slice(V.t,I), slice(V.X, 1:dim(V.P), I)) 
+function sub(V::GenVecProcPath, I) 
+	SubVecProcPath(sub(V.t,I), sub(V.X, 1:size(V.X,1), I)) 
 end
 
 
 
+
+# crutch for missing inplace functions
+
+function randn!{T,A}(X::SubArray{T,2,A})
+	s = size(X)
+	X[:,:] = randn(s...)
+end
+
+function cumsum!{T,A}(V::SubArray{T,1,A})
+	V[:] = cumsum(V)
+end
+
+function cumsum!{T,A}(V::SubArray{T,2,A}, d)
+	V[:,:] = cumsum(V,d)
+end
 
 
 ### Processes 
 
-type CorrWiener{Cov<:AbstractPDMat}  <: CTVecProc
+type MvWhiteNoise <: VecProc
+	d::Int	
+	MvWhiteNoise(d::Integer) = d < 1 ? error("illegal dimension") : new(d)
+end
+
+type MvWiener <: VecProc
+	d :: Int	
+	MvWiener(d::Integer) = d < 1 ? error("illegal dimension") : new(d)
+end
+
+
+type CorrWiener{Cov<:AbstractPDMat}  <: VecProc
 	μ::Vector{Float64}
 	Σ::Cov	
 	d::Int	
@@ -104,52 +124,45 @@ type CorrWiener{Cov<:AbstractPDMat}  <: CTVecProc
 	end
 end
 
-
-type MvWiener <: CTVecProc
-	d :: Int	
-	MvWiener(d::Integer) = d < 1 ? error("illegal dimension") : new(d)
-end
-
-
-type MvWienerBridge <: CTVecProc
+type MvWienerBridge <: VecProc
 	d :: Int
 	T :: Float64	
 	v :: Vector{Float64}
 	MvWienerBridge(T, v) = new(length(v), T, v)
 end
 
-
-type PoissonProcess <: CTChain
+type PoissonProcess <: Chain
  	lambda :: Float64
 	PoissonProcess(lambda :: Float64) = new(lambda)
 end
 
 
 
-type DX <: GenSamplePath
-	P :: CTVecProc 
-	dt :: Array{Float64,1}
-	dX :: Array{Float64,2} #invariant: dX[1] = X[1]
-	DX(P, dt, dX) = (assert( min(dt) >= 0.0, "negative stepsize");	new(P, dt, dX))
-end
 
-# sample white noise
+############ White Noise ########################
 
 function DW(u::Vector, t)
 	d = length(u)
-	dt = diff1(t)
-	dW = randn(d,length(dt)) .* sqrt(dt)'
+	dt = diff0(t)
+ 	dW = randn(d,length(dt)) .* sqrt(dt)'
 	dW[:,1]= u
-	DX(MvWiener(d), dt, dW)
+	VecProcPath(t, dW)
 end
 
-function DW!(X::Array{Float64,2}, u::Vector, t)
-	dt = diff1(t)
-	randn(X) .* sqrt(dt)'
+function DW!(X::StridedArray{Float64,2}, u::Vector, t)
+	dt = diff0(t)
+ 	randn!(X)
+	X[:,:] = X .* sqrt(dt)'
 	X[:,1]= u
 	X
 end
 
+function DW!(V::GenVecProcPath,  u::Vector)
+	dt = diff0(V.t)
+ 	randn(X) .* sqrt(dt)'
+	V.X[:,1]= u
+	V
+end
 
 
 
@@ -195,7 +208,7 @@ function samplebridge(P::PoissonProcess, t1, n1, t2, n2; jumpend = true)
 	if (!jumpend)
 	 	N[end] -= 1
 	end
-	CountingProcessPath(P, cumsum!(dt), N)
+	CountingProcessPath(cumsum!(dt), N)
 end
 
 ############ MvWiener process ########################
@@ -207,69 +220,75 @@ function law(W::MvWiener, u, t)
 	IsoNormal(u, t)
 end 
 
-function dim(W::MvWiener)
-	W.d
+function dim(V::VecProc)
+	V.d
 end
 
 
-function transform_noise!(P::MvWiener, V::SubVecPath)
-	V.P = P
-	cumsum!(V.dt)
-	cumsum!(V.dX,2)
+function transform_noise!(P::MvWiener, V::GenVecProcPath)
+	cumsum!(V.X,2)
 	V
 end
 
 
-function transform_noise!(P::MvWienerBridge, V :: SubVecPath)
-	V.P = P
-	
- 	dW = dW .+ (P.v .- sum(dW,2))*dt'/P.T
-	cumsum!(V.dt)
-	assert(V.d
-	cumsum!(V.dX,2)
-	
-
-	CTVecPath(P, cumsum(V.dt), cumsum!(V.dX,2) )
-end
-
-
-function sample!(P::MvWiener, u::Vector, V::VecPath)
-	DW!(V.X, u, V.t)
+function transform_noise!(P::MvWienerBridge, V :: GenVecProcPath)
+	assert(P.T == V.t[end])
+	u = V.X[:, 1]
+ 	V.X[:] = V.X .+ (P.v - sum(V.X,2))*diff0(V.t)'/(P.T - V.t[1])
 	cumsum!(V.X,2)
-	V	
-end
- 
-function sample(P::MvWiener, u, t)
-	dW = DW(u, t)
-	CTVecPath(P, t, cumsum!(dW.dX,2) )
+	V
 end
 
-function sample(P::MvWiener, t) 
+function sample!(P::VecProc, u::Vector, V::GenVecProcPath)
+	DW!(V.X, u, V.t)
+	transform_noise!(P, V)
+end
+
+ 	
+function sample(P::VecProc, u::Vector, t::Vector)
+	dW = DW(u, t)
+	transform_noise!(P, dW)
+end
+
+function sample(P::VecProc, t) 
 	sample(P, zeros(dim(P)), t) 
 end
  	
+
+#function sample!(P::MvWiener, u::Vector, V::GenVecProcPath)
+#	DW!(V.X, u, V.t)
+#	cumsum!(V.X,2)
+#	V	
+#end
+# 	
+#function sample(P::MvWiener, u, t)
+#	dW = DW(u, t)
+#	cumsum!(dW.X,2)
+#	dW
+#end
+
+
 function samplebridge(P::MvWiener, u, v, t)
 	dW = DW(u, t)
-	transform_noise!(MvWienerBridge(t[end]-t[1], v), dW)
-  	CTVecPath(P, t, dW.dX)
+	transform_noise!(MvWienerBridge(t[end], v), dW)
+  	dW
 end
-function samplebridge!(P::MvWiener, u, v, V::SubVecPath)
+function samplebridge!(P::MvWiener, u, v, V::GenVecProcPath)
 	DW!(V.X, u, V.t)
-	transform_noise!(MvWienerBridge(t[end]-t[1], v), dW)
-  	CTVecPath(P, t, dW.dX)
+	transform_noise!(MvWienerBridge(V.t[end], v),V)
+	V
 end
 
 
 
-function augment(P::GenCTProcess, W :: GenCTVecPath, s) 
-	P = W.P
+function augment(P::VecProc, W :: GenVecProcPath, s) 
 	t = W.t #alias
 	assert(issorted(s))
 #	assert(min(t) <= min(s))  
 	n = length(t)
 	m = length(s)
 
-	Wnew = VecPath(P, zeros(n + m), zeros(Float64, dim(P), n + m))
+	Wnew = VecProcPath(zeros(n + m), zeros(Float64, dim(P), n + m))
 	
 	j = 1 # traverse vector t 
 	i = 1 #      and vector s
@@ -283,7 +302,7 @@ function augment(P::GenCTProcess, W :: GenCTVecPath, s)
 			#forward simulate from W.X[:, n] and append
 			#B = sample(P, W.X[:, n], Wnew.t[n + i-1 : n + m] ) 
 			#Wnew.X[:, n + i-1 : n + m] = B.X  
-			sample!(P,  W.X[:, n], slice(Wnew, n + i-1 : n + m))
+			sample!(P,  W.X[:, n], sub(Wnew, n + i-1 : n + m))
 			
 			break #s exhausted too
 
@@ -302,7 +321,7 @@ function augment(P::GenCTProcess, W :: GenCTVecPath, s)
 		  	# sample bridge from W[j] to W[j+1] using those timepoints
 	#	  	B = samplebridge(P, W.X[:, j], W.X[:, j+1], Wnew.t[j + i - 1 : j + i2 + 1])
 	#		Wnew.X[:,j + i - 1 : j + i2 + 1] = B.X
-			samplebridge!(P,  W.X[:, n], W.X[:, j+1], slice(Wnew,j + i - 1 : j + i2 + 1))
+			samplebridge!(P,  W.X[:, n], W.X[:, j+1], sub(Wnew,j + i - 1 : j + i2 + 1))
 		
  			j += 1
 		  	i = i2 + 1

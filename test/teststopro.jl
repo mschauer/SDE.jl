@@ -6,7 +6,7 @@ srand(8)
 #tests with alpha 0.01
 
 
-n = 100
+n = 1000
 d= 2
 
 #0.99 quantile vor mean of sum of squares of d-dimensional normals
@@ -60,7 +60,7 @@ chilower = quantile(Distributions.Chisq(n), 0.005) #lower 0.005 percentile
 
 N = sample(PoissonProcess(1.), 0, 0., 10.1)
 V = sample(MvWiener(2), zeros(2), linspace(0,1,5))
-Vaug = augment( V, [0.3, 1., 10.])
+Vaug = augment(MvWiener(2), V, [0.3, 1., 10.])
 dump(Vaug)
 #julia> var(Bn(2,[1.,2.], [5.,7.],[0.1, 0.3, 0.5, 3.], 100000, 3),2 )
 #2x1 Array{Float64,2}:
