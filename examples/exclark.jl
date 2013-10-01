@@ -1,7 +1,9 @@
-module ExClark
-using SDE
+#module ExClark
+include(joinpath("..",  "src","Lyap.jl"))
+include(joinpath("..",  "src","LinProc.jl"))
 using Lyap
 using LinProc
+ 
 include(joinpath("..",  "src","misc.jl"))
 
 srand(4)
@@ -12,8 +14,8 @@ si = 0.1; include("excoeff2.jl")
 T = 4
 N = 1201 #design points
 K = 100000 #samples
-subsample = 100
-res = zeros(int(K/subsample)+1, 11)
+subsample = 10
+res = zeros(int(K/subsample)+1, 9)
 
 # if v=re() is distributed with log density le()
 # and yy is a path with drift LinProc.Bcirc(T, v, b, sigma, B, beta, lambda) and diffusion sigma
@@ -28,8 +30,10 @@ function rare(K, N, E, re, pe)
 
 	println("Compute P(X in E), K=$K")
  
-	llmax = [Inf,-Inf]
-	lplambdamax = [Inf,-Inf]
+	llmin = Inf
+	llmax = -Inf
+	lplambdamax = -Inf
+	lplambdamin = Inf	
 
 	L = L2 = 0.0
 	V = 0.0
@@ -76,12 +80,15 @@ function rare(K, N, E, re, pe)
 		l =  exp(lplambda + ll)/pe(v0)
 		
  		# running mean and sum of squares
- 		if (ll > llmax[2]) vmax = v0 end
-		llmax = [min(llmax[1], ll), max(llmax[2], ll)]
-		lplambdamax = [min(lplambdamax[1], lplambda), max(lplambdamax[2], lplambda)]
+ 		if (ll > llmax) vmax = v0 end
+		llmin = min(llmin, ll)
+		llmax = max(llmax, ll)
+		lplambdamax =  max(lplambdamax, lplambda)
+		lplambdamin = min(lplambdamin, lplambda)
 		 
 		L += l
-		L2 += l^2		
+		L2 += l^2	
+		assert(E(v0) == 1.)	
 		V0 += E(v0) * l
 		V02 += (E(v0) * l).^2
 		V += 1.*E(v)
@@ -91,12 +98,19 @@ function rare(K, N, E, re, pe)
 			print("$k:")
 		  
 			p =  mc2(k, L, L2)
-			res[:,k] = [k mc2(k, V, V2) mc2(k,float64(V0), float64(V02)) round(llmax, 1) round(lplambdamax,1)  round(vmax,2)]
-			println(" v ", mc2(k, V, V2)," v0 ", mc2(k,float64(V0), float64(V02)), " < p $p max's ll ", round(llmax, 1), " lp ", round(lplambdamax,1),", v0max ", round(vmax,2)," >" )
+			println(" v ", strmc2(k, V, V2)," v0 ", strmc2(k,float64(V0), float64(V02)), " < min max's ll ", round(llmin, 1), " ", round(llmax, 1), " lp max ", round(lplambdamax,1),">")
+			#," v0 ", mc2(k,float64(V0), float64(V02)), " < p $p max's ll ", roundv(llmax, 1)..., " lp ", roundv(lplambdamax,1)...,", v0max ", roundv(vmax,2)...," >" ))
+			z1 = mc2(k, V, V2)
+			z2 = mc2(k,float64(V0), float64(V02))
+			
+			res[k/subsample, :] = [k z1[1] z1[2] z2[1] z2[2] round(llmin, 1)  round(llmax, 1)  round(lplambdamin,1) round(lplambdamax,1)  ]
+			
 	 
 		end	
 	end
 end
+
+
 
 function dens(K, N, v0, t, T, B, A)
 
@@ -155,9 +169,9 @@ function dens(K, N, v0, t, T, B, A)
 	 
 		if (0 == k % subsample)
 			print("$k:")
-			res[k/subsample,:] = [k mc3(k, float64(Lx), float64(Lx2))... mc3(k,float64(Lo), float64(Lo2))... round(llmax, 3)... round(llxmax,3)...]
+			res[k/subsample,:] = [k mc2(k, float64(Lx), float64(Lx2))... mc2(k,float64(Lo), float64(Lo2))... roundv(llmax, 3)... roundv(llxmax,3)...]
 	  
-			println(" ", mc3(k, float64(Lx), float64(Lx2)), " ~ ", mc3(k,float64(Lo), float64(Lo2)), " < max's llo ", round(llmax, 1), " llx ", round(llxmax,1)," >" )
+			println(" ", strmc2(k, float64(Lx), float64(Lx2)), " ~ ", strmc2(k,float64(Lo), float64(Lo2)), " < max's llo ", roundv(llmax, 1), " llx ", roundv(llxmax,1)," >" )
 	 
 		end	
 	end
@@ -194,11 +208,15 @@ function re()
 end
 
 #rare(K, N, E, re, pe)
-println("try ExClark.D()\n\t (= dens(K, N, v, t, T, B, a(T,v)))")
+#
+println("try ExClark.D1()\n\t (= dens(K, N, v, t, T, B, a(T,v)))")
 
-function D()
+function D1()
  dens(K, N, v, 0.999*T, T, exp(-0.2*T)*bB, a(T,v))
+end	
+function D2()
+ rare(K, N, E, re, pe)
 end	
 
 
-end
+#end
