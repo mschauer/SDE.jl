@@ -73,68 +73,50 @@ function isignif_og(x, digits, base)
     end
 end
 
-function isignif(x, digits::Integer, base::Integer=10)
-    if digits < 0
-        throw(DomainError())
-    end
-    if x==0 || !isfinite(x)
-        return x, 0
-    end
-    og = isignif_og(float(x), digits, base)
-    iround(float(x)/float(base)^og), og
-end
 
-
-strisignif(xi, og) = string(xi * og)
-
-function strisignif(xi::Integer, og::Integer)
-  
-	if og >= 0 && xi == 0
-		"0"
-	elseif og >= 0 && xi != 0
-		string(xi) * "0"^(og)
-	elseif abs(xi) >= 10^(-og) 
-		s = string(xi)
- 		s[1: end+og]*"."*s[end+og+1:end]
-	else
-		s = string(abs(xi))
-		(xi < 0 ? "-":"")* "0."*"0"^(-length(s)-og)*s
+function roundste(out::IOBuffer, m, ste::FloatingPoint)
+	println(m, ste)
+	if 
+		!isfinite(m) print(out, m)
+		return out
 	end
+
+	if isnan(ste) 
+		print(out, m, " ± NaN (se)")
+		return out
+	elseif isinf(ste)
+		print(out, m, " ± Inf (se)")
+		return out
+	elseif ste < eps(m)
+		print(out, m)
+		return out
+	end
+
+	assert(ste >= 0.) 
+	og = max(isignif_og(m, 3, 10) - isignif_og(ste, 3, 10)+3,0)
+	Base.Grisu._show(out, m, Base.Grisu.PRECISION, og, false)
+	print(out, " ± ")
+	Base.Grisu._show(out, ste, Base.Grisu.PRECISION, 3, false)
+	print(out, " (se)")
+out
 end
 
-
-function roundste(m, ste::FloatingPoint)
-
- if (m == -0.0) m = 0.0 end
- if (ste == -0.0) ste = 0.0 end
-
- if 
- 	!isfinite(m) return string(m)
- end
- 
- if isnan(ste) 
- 	return (isinteger(m) ?  string(int(m)) : string(m)) * " ± NaN (se)" 
- elseif isinf(ste)
- 	return (isinteger(m)  ? string(int(m)) : string(m)) * " ± Inf (se)" 
- end
- assert(ste >= 0.) 
- stei, og = isignif(ste, 3)
- mi =  iround(float(m)/float(10)^og)
- 
- strisignif(mi, og)*" ± "*strisignif(stei, og)*(" (se)")
-end
-
-function roundste(r)
+function roundste(out::IOBuffer, r)
  	m, ste = r
- 	res = roundste(m[1], ste[1]) 
+ 	roundste(out, m[1], ste[1]) 
 	for i in 2:length(m)
-		res *= ", "* roundste(m[i], ste[i]) 
+		print(", ")
+		roundste(out, m[i], ste[i]) 
 	end
-	res
 end
 
 
-strmc2(k, Z, Z2) = roundste( mc2(k, Z, Z2, false))
+function strmc2(k, Z, Z2) 
+    s = IOBuffer(true, true)
+    truncate(s,0)
+    roundste(s, mc2(k, Z, Z2, false))
+    takebuf_string(s)
+end
 
 
 #stdv(k, Z, Z2) = va(k, Z, Z2)/k
