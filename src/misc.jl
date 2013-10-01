@@ -75,7 +75,6 @@ end
 
 
 function roundste(out::IOBuffer, m, ste::FloatingPoint)
-	println(m, ste)
 	if 
 		!isfinite(m) print(out, m)
 		return out
@@ -94,9 +93,9 @@ function roundste(out::IOBuffer, m, ste::FloatingPoint)
 
 	assert(ste >= 0.) 
 	og = max(isignif_og(m, 3, 10) - isignif_og(ste, 3, 10)+3,0)
-	Base.Grisu._show(out, m, Base.Grisu.PRECISION, og, false)
+ 	grisu(out, m, Base.Grisu.PRECISION, og)
 	print(out, " ± ")
-	Base.Grisu._show(out, ste, Base.Grisu.PRECISION, 3, false)
+	grisu(out, ste, Base.Grisu.PRECISION, 3)
 	print(out, " (se)")
 out
 end
@@ -135,6 +134,61 @@ function selfadjmc(k, X, X2)
 		return [m, NaN.*m]
 	end
 	
+end
+
+
+function grisu(io::IO, x::FloatingPoint, mode::Int32, n::Int)
+    if isnan(x) return write(io, "NaN"); end
+    if isinf(x)
+        if x < 0 write(io,'-') end
+        write(io, "Inf")
+        return
+    end
+    Base.Grisu.@grisu_ccall(x, mode, n)
+    pdigits = pointer(Base.Grisu.DIGITS)
+    neg = Base.Grisu.NEG[1]
+    len = int(Base.Grisu.LEN[1])
+    pt  = int(Base.Grisu.POINT[1])
+#    if mode == PRECISION
+#        while len > 1 && DIGITS[len] == '0'
+#            len -= 1
+#        end
+#    end
+    if neg write(io,'-') end
+    if pt <= -4 || pt > 6 # .00001 to 100000.
+        # => #.#######e###
+        write(io, pdigits, 1)
+        write(io, '.')
+        if len > 1
+            write(io, pdigits+1, len-1)
+        else
+            write(io, '0')
+        end
+        write(io, 'e')
+        write(io, dec(pt-1))
+        return
+    elseif pt <= 0
+        # => 0.00########
+        write(io, "0.")
+        while pt < 0
+            write(io, '0')
+            pt += 1
+        end
+        write(io, pdigits, len)
+    elseif pt >= len
+        # => ########00.0
+        write(io, pdigits, len)
+        while pt > len
+            write(io, '0')
+            len += 1
+        end
+        write(io, ".0")
+    else # => ####.####
+        write(io, pdigits, pt)
+        write(io, '.')
+        write(io, pdigits+pt, len-pt)
+    end
+    nothing
 end
 
 #plot (2d) sample path
