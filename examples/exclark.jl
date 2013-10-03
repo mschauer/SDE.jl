@@ -26,7 +26,104 @@ res = zeros(int(K/subsample)+1, 9)
 v0max = [NaN, NaN]
 
  
-function rare(K, N, E, re, pe)
+function raremh(K, N, E, sizeE, prop, q, v0,  B, A)
+
+	println("Compute P(X in E), K=$K")
+ 
+	llmin = Inf
+	llmax = -Inf
+	lplambdamax = -Inf
+	lplambdamin = Inf	
+
+	L = L2 = 0.0
+	V = 0.0
+	V2 = 0.0
+ 	# avoid cancellation 
+	V0 = BigFloat(0.0)
+	V02 = BigFloat(0.0)
+	
+	Dt = diff(linspace(0., T, N))
+	dt = Dt[1]
+	Smax = LinProc.taui(T-dt,T)
+	S = linspace(0.,Smax, N)
+	Ds = diff(S)
+	ds = Ds[1]
+	
+
+	lambdav0 = Lyap.lyap(B', -A)
+	lpv0 =  LinProc.lp(T, u, v0, B, beta, lambdav0)
+	Cpv0 = exp(lpv0)
+	
+	for k in 1:K
+	
+		if (OS_NAME != :Windows) print("$k $V\r") end
+
+ 		DW = randn(2, N-1) .* sqrt(dt)
+	 	yy = LinProc.eulerv(0.0, u, b, sigma, Dt, DW)
+		v = yy[1:2, N]
+		
+
+		# propose new choise of 
+	 	v0prop = prop(v0)		
+		lpv0prop = LinProc.lp(T, u, v0prop, B, beta, lambdav0)
+	 
+	 	if rand() < min(1.0, exp(lpv0prop - lpv0))
+	 		v0 = v0prop
+	 		lpv0 = lpv0prop
+	 	end
+	#	println("v0 (", v0[1], ",", v0[2], ")", lpv0, " ", Cpv0/k)
+
+		Cpv0 += exp(lpv0)
+		
+		
+ 		# find lambda at the endpoint
+		lambda = Lyap.lyap(B', -a(T,v0))
+		lplambda = LinProc.lp(T, u, v0, B, beta, lambda)
+		
+ 		#yy = LinProc.eulerv(0.0, u, v0, LinProc.Bcirc(T, v0, b, sigma, B, beta, lambda), sigma, Dt, DW)
+	 	#ll = LinProc.llikelixcirc(0, T, yy, b, a, B, beta, lambda)
+		DW = randn(2, N-1) .* sqrt(ds)
+		u0 =  LinProc.UofX(0,u,  T, v0,  B, beta)
+		yy = LinProc.eulerv(0.0, u0, LinProc.bU(T, v0, b, a, B, beta, lambda),  (s,x) -> sqrt(T)*sigma(LinProc.ddd(s,x, 0.0, T, v0,  B, beta)...), Ds, DW)
+		
+		ll = LinProc.llikeliU(S, yy, T, v0, b, a,  B, beta, lambda)
+	
+ 
+
+		l =  exp(lplambda + ll - lpv0)*Cpv0/k *sizeE
+		
+ 		# running mean and sum of squares
+ 		if (ll > llmax) vmax = v0 end
+		llmin = min(llmin, ll)
+		llmax = max(llmax, ll)
+		lplambdamax =  max(lplambdamax, lplambda)
+		lplambdamin = min(lplambdamin, lplambda)
+		 
+		L += l
+		L2 += l^2	
+		assert(E(v0) == 1.)	
+		V0 += E(v0) * l
+		V02 += (E(v0) * l).^2
+		V += 1.*E(v)
+		V2 += E(v).^2
+		#println("$L $V0 $V")    
+		if (0 == k % subsample)
+			print("$k:")
+		  
+			p =  mc2(k, L, L2)
+			println(" v ", strmc2(k, V, V2)," v0 ", strmc2(k,float64(V0), float64(V02)), " < min max's ll ", round(llmin, 1), " ", round(llmax, 1), " lp max ", round(lplambdamax,1),">")
+			#," v0 ", mc2(k,float64(V0), float64(V02)), " < p $p max's ll ", roundv(llmax, 1)..., " lp ", roundv(lplambdamax,1)...,", v0max ", roundv(vmax,2)...," >" ))
+			z1 = mc2(k, V, V2)
+			z2 = mc2(k,float64(V0), float64(V02))
+			
+			res[k/subsample, :] = [k z1[1] z1[2] z2[1] z2[2] round(llmin, 1)  round(llmax, 1)  round(lplambdamin,1) round(lplambdamax,1)  ]
+			
+	 
+		end	
+	end
+end
+
+function rare(K, N, E, re, pe,  B, A)
 
 	println("Compute P(X in E), K=$K")
  
@@ -192,10 +289,12 @@ v= [-0.323933,  0.494032] #same as A->B in Example 2
 ##### proposal distribution to explore rare event E
 
 #test, whether X(T) in E
-ep = 0.05
+#ep = 0.05
+ep = 0.1
 function E(x)
  max(abs(x - v)) <= ep
 end
+sizeE = (2*ep)^2
 
 # a density, supported on E
 function pe(x)
@@ -215,8 +314,10 @@ function D1()
  dens(K, N, v, 0.999*T, T, exp(-0.2*T)*bB, a(T,v))
 end	
 function D2()
- rare(K, N, E, re, pe)
+ rare(K, N, E, re, pe, exp(-0.2*T)*bB, a(T,v) )
 end	
 
-
+function D3()
+ raremh(K, N, E, sizeE,  v -> re(), null, v, exp(-0.2*T)*bB,a(T,v) )
+end	
 #end
