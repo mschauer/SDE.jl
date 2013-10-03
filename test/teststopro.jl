@@ -1,4 +1,4 @@
-include("../src/StoPro.jl")
+("../src/StoPro.jl")
 using Distributions
 using StoPro
 srand(8)
@@ -67,6 +67,9 @@ dump(Vaug)
 # 0.344571
 # 0.343892
 
+
+@test_approx_eq StoPro.euler([1.,1.], (t, n, x)->-x, (t, n, x) -> 0*eye(2), StoPro.DW([0,0], linspace(1,2,10))).X
+[1,3]  64/81
 
 
 #W =  cumsum(dW,2) + (v .- sum(dW,2))*(t'.-t[1])/(t[end] - t[1]); VecPath(P, t, W)

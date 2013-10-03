@@ -2,7 +2,7 @@ module StoPro
 using Distributions
 using NumericExtensions
 #import getindex, setindex!
-export MvWiener, PoissonProcess, diff1, sample!, sample, samplebridge, law, at, augment
+export MvWiener, PoissonProcess, diff1, sample!, sample, samplebridge, law, at, augment, DW, euler
 
 import Distributions.VariateForm
 import Distributions.ValueSupport
@@ -247,9 +247,8 @@ function transformdw!(P::MvWiener, V::GenVecProcPath)
 end
 
 
-function transformdw!(P::MvWienerBridge, V :: GenVecProcPath)
+function transformdw!(P::MvWienerBridge, V :: GenVecProcPath) #here	u = V.X[:, 1]
 	assert(P.T == V.t[end])
-	u = V.X[:, 1]
  	V.X[:] = V.X .+ (P.v - sum(V.X,2))*diff0(V.t)'/(P.T - V.t[1])
 	cumsum!(V.X,2)
 	V
@@ -321,4 +320,37 @@ function augment(P::VecProc, W :: GenVecProcPath, s)
 end
 
 
+
+#%  .. function:: euler(u, b(t,i,x), sigma(t,i,x), V :: GenVecProcPath)
+#%  
+#%  	Multivariate euler scheme, starting in u.
+#% 	``dw`` -- Wiener differential with ``n`` values in the 
+#%  	the interval ``[t0,sum(dt)]`` sampled at timepoints ``t0+Dt[1], t0 + Dt[1] + Dt[2], ...``
+#%	``b, sigma`` -- drift and diffusion coefficient. 
+#%	To allow for
+#%  	
+ 		
+function euler(u, b, sigma, V :: GenVecProcPath)
+	t = V.t 
+	dW = V.X
+	
+	N = (size(dW))[end]
+	
+	X = zeros(length(u), N)
+
+	y = copy(u)
+	for i in 1:N-1
+		X[:,i] = y
+ 		y[:] = y .+  b(t,i, y)*(t[i+1]-t[i]) .+ sigma(t,i, y)*dW[:,i+1]
+	
+	end
+	X[:,N] = y
+	
+	VecProcPath(t, X)
 end
+
+
+
+
+end
+
