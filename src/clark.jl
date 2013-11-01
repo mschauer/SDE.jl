@@ -75,6 +75,18 @@ function J1(s,T, B, A, lambda)
 	T*inv( phim*sl*phim'-sl)
 end
 
+function inv2x2!(j)
+	s = 1.0/(j[1,1]*j[2,2]-j[2,1]*j[1,2])
+	
+	z = j[2,2] 
+	j[2,2] = s*j[1,1]
+	j[1,1] = s*z
+
+	z = j[2,1] 
+	j[2,1] = -s*j[1,2]
+	j[2,1] = -s*z
+	j
+end
 
 #d = 2 numerical stable for s to infty, using putzer's formula for the matrix exponential and then rearranging terms
 function J2(s,T, B, A, lambda)
@@ -93,10 +105,12 @@ function J2(s,T, B, A, lambda)
 	t = -T*exp(-s)	#t = -h, i believe. 
 	#solution of -log(-t/T) = s
 	
-	inv(-exp(2*k*t)/t*(-cos(la*t)*sin(la*t)/la + sin(la*t)^2/la^2*k)*A + # coefficient in this line converges to 1 for s to infty
+	j = (-exp(2*k*t)/t*(-cos(la*t)*sin(la*t)/la + sin(la*t)^2/la^2*k)*A + # coefficient in this line converges to 1 for s to infty
 	-exp(2*k*t)/t*(-(sin(la*t))^2  + (- expm1(-2*k*t) -(cos(la*t)*sinc(la*t/pi)* 2*k*t)) + sin(la*t)^2/la^2* k*k)*lambda +
 	-exp(2*k*t)/t*(sin(la*t)^2/la^2*(B*lambda*B')) 
 	)
+
+	inv2x2!(j)
 #	rearrangement of 
 #	I = eye(size(lambda)...)
 #	T*exp(-s-2*k*t)* inv(-sin(la*t)^2*lambda +	sin(la*t)^2/(la)^2*(B*lambda*B' + a*k + k*k*I) - cos(la*t)*sin(la*t)/la*(a + 2*k*I))
@@ -144,9 +158,67 @@ function llikeliU(S, U, tmin, T, v, b, a,  B, beta, lambda)
 	Li1= L(S[1], leading(U, 1))
 	for i in 1:N-1
 	  Li = Li1
-	  Li1 =	L(S[i+1], leading(U, i+1))
+  	  Li1 =	L(S[i+1], leading(U, i+1))
 	  som += 0.5*(Li+Li1)*(S[i+1]-S[i])
+  	 # if (i == 10) println("Li(1)$i", Li, " ", Li1) end
+
 	end
  	
 	som
 end
+
+
+#slightly optimized only computing the likelihood
+#replaces consecutive call of euler scheme with drift bu and llikeliU
+function transd(S,tmin, tmax, u, v, b, sigma, a, B, beta, lambda, WN, K=1)
+#	tmin = T[1]
+#	tmax = T[end]
+	Delta =tmax - tmin
+	if (norm(B) < eps2) 
+		error("case 'norm(B) < eps2' not yet implemented") 
+	end
+ 	Binvbeta = B\beta
+ 	d = length(u)
+ 	U = zeros(d, K)
+	U[:,1] = exp(0./2)*(expm(-B*Delta*exp(-0.))*( v + Binvbeta) -  Binvbeta - u)
+
+	y = zeros(d)
+	z1 = zeros(d)
+	jU = zeros(d)
+	tBy = zeros(d)
+	bUU  = zeros(d)
+
+	for k = 1:K
+		U[:,k] = U[:,1]
+	end
+
+	Σ = zeros(K)
+	N = length(S)
+	for i in 1:N-1
+		ds = S[i+1]-S[i]
+		s = S[i]
+		t = Delta*(1.-exp(-s))
+
+		phim = expm(-B*Delta*exp(-s))
+		z1[:] = phim *( v + Binvbeta) -  Binvbeta
+		j = J(s,Delta, B, a(tmax, v), lambda)
+		
+		for k in 1:K
+			jU[:] = j*U[:,k]
+			y[:] = z1  - exp(-s/2)*U[:,k]
+			tBy[:] = B*y + beta
+			L = (scalar((b(t, y)  - tBy)' *exp(-s/2.)*jU)
+			 - 0.5 *trace((a(t, y) - a(tmax,v)) *( j - 1./Delta*(jU)*(jU)' )))
+			 #better mapreduce(Multiply(), Add(), a(t, y) - a(tmax,v), j)
+			Σ[k] += ds*L
+			bUU[:] = Delta*exp(-s/2.)*phim*(B*v + beta)  - Delta*exp(-s/2)*b(t,y) + (0.5*U[:,k] -  a(t, y)*jU)
+			U[:, k] = U[:,k] .+  bUU*ds .+ sqrt(Delta)*sigma(t, y)*WN[:,(k-1)*(N-1)+i]*sqrt(ds)
+		end	
+
+		#if (i == 10) println("L$i $L ") end
+
+	end
+	K > 1 ? Σ : scalar(Σ)
+	
+end
+

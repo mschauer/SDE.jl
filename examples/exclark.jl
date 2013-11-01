@@ -7,17 +7,18 @@ using LinProc
 include(joinpath("..",  "src","misc.jl"))
 
 srand(4)
+#srand(5)
 
 si = 0.1; include("excoeff2.jl")
  
 #T = 1.2
 T = 4
 N = 1201 #design points
-K = 100000 #samples
-subsample = 10
-res = zeros(int(K/subsample)+1, 9)
-
-# if v=re() is distributed with log density le()
+#
+N = 2201 #design points
+K = 50000 #samples
+subsample = 100
+ # if v=re() is distributed with log density le()
 # and yy is a path with drift LinProc.Bcirc(T, v, b, sigma, B, beta, lambda) and diffusion sigma
 # (lambda has to be computed for B(T, v) and a(T,v)!)
 # then the expectation of llikelicirc(... yy, ...) is 1/pbar
@@ -25,9 +26,9 @@ res = zeros(int(K/subsample)+1, 9)
 
 v0max = [NaN, NaN]
 
- 
-function raremh(K, N, E, sizeE, prop, q, v0,  B, A)
 
+function raremh(K, N, E, sizeE, prop, q, v0,  B, A, bundlesize = 100)
+	global res = zeros(int(K/subsample)+1, 11)
 	println("Compute P(X in E), K=$K")
  
 	llmin = Inf
@@ -48,65 +49,76 @@ function raremh(K, N, E, sizeE, prop, q, v0,  B, A)
 	S = linspace(0.,Smax, N)
 	Ds = diff(S)
 	ds = Ds[1]
-	
+	global t = zeros(2)
 
 	lambdav0 = Lyap.lyap(B', -A)
 	lpv0 =  LinProc.lp(T, u, v0, B, beta, lambdav0)
 	Cpv0 = exp(lpv0)
+	yy = zeros(length(u), N)
+	y = zeros(length(u))
 	
-	for k in 1:K
+	for k in bundlesize:bundlesize:K 
 	
 		if (OS_NAME != :Windows) print("$k $V\r") end
 
- 		DW = randn(2, N-1) .* sqrt(dt)
-	 	yy = LinProc.eulerv(0.0, u, b, sigma, Dt, DW)
-		v = yy[1:2, N]
-		
+		t[1] += @elapsed for n in 1:bundlesize
+	 		DW = randn(2, N-1) .* sqrt(dt)
+		 	yy = LinProc.eulerv(0.0, u, b, sigma, Dt, DW)
+			v = yy[1:2, N]
+			V += 1.*E(v)
+			V2 += E(v).^2
+		end 
 
-		# propose new choise of 
-	 	v0prop = prop(v0)		
-		lpv0prop = LinProc.lp(T, u, v0prop, B, beta, lambdav0)
-	 
-	 	if rand() < min(1.0, exp(lpv0prop - lpv0))
-	 		v0 = v0prop
-	 		lpv0 = lpv0prop
-	 	end
-	#	println("v0 (", v0[1], ",", v0[2], ")", lpv0, " ", Cpv0/k)
-
-		Cpv0 += exp(lpv0)
-		
-		
- 		# find lambda at the endpoint
-		lambda = Lyap.lyap(B', -a(T,v0))
-		lplambda = LinProc.lp(T, u, v0, B, beta, lambda)
-		
- 		#yy = LinProc.eulerv(0.0, u, v0, LinProc.Bcirc(T, v0, b, sigma, B, beta, lambda), sigma, Dt, DW)
-	 	#ll = LinProc.llikelixcirc(0, T, yy, b, a, B, beta, lambda)
-		DW = randn(2, N-1) .* sqrt(ds)
-		u0 =  LinProc.UofX(0,u,  T, v0,  B, beta)
-		yy = LinProc.eulerv(0.0, u0, LinProc.bU(T, v0, b, a, B, beta, lambda),  (s,x) -> sqrt(T)*sigma(LinProc.ddd(s,x, 0.0, T, v0,  B, beta)...), Ds, DW)
-		
-		ll = LinProc.llikeliU(S, yy, T, v0, b, a,  B, beta, lambda)
-	
- 
-
-		l =  exp(lplambda + ll - lpv0)*Cpv0/k *sizeE
-		
- 		# running mean and sum of squares
- 		if (ll > llmax) vmax = v0 end
-		llmin = min(llmin, ll)
-		llmax = max(llmax, ll)
-		lplambdamax =  max(lplambdamax, lplambda)
-		lplambdamin = min(lplambdamin, lplambda)
+		t[2] += @elapsed begin
+			# propose new choice of 
+		 	v0prop = prop(v0)		
+			lpv0prop = LinProc.lp(T, u, v0prop, B, beta, lambdav0)
 		 
-		L += l
-		L2 += l^2	
-		assert(E(v0) == 1.)	
-		V0 += E(v0) * l
-		V02 += (E(v0) * l).^2
-		V += 1.*E(v)
-		V2 += E(v).^2
-		#println("$L $V0 $V")    
+		 	if rand() < min(1.0, exp(lpv0prop - lpv0))
+		 		v0 = v0prop
+		 		lpv0 = lpv0prop
+		 	end
+		#	println("v0 (", v0[1], ",", v0[2], ")", lpv0, " ", Cpv0/k)
+
+			Cpv0 += exp(lpv0)*bundlesize
+		
+		
+	 		# find lambda at the endpoint
+			lambda = Lyap.lyap(B', -a(T,v0))
+			lplambda = LinProc.lp(T, u, v0, B, beta, lambda)
+		
+	 		#yy = LinProc.eulerv(0.0, u, v0, LinProc.Bcirc(T, v0, b, sigma, B, beta, lambda), sigma, Dt, DW)
+		 	#ll = LinProc.llikelixcirc(0, T, yy, b, a, B, beta, lambda)
+		 	WN = randn(2, bundlesize*(N-1))
+			
+			ll = LinProc.transd(S, 0., T, u, v0, b, sigma, a, B, beta, lambda, WN, bundlesize)
+
+			
+			for n in 1:bundlesize
+				l =   exp(lplambda + ll[n] - lpv0)*Cpv0/k *sizeE
+				L += l
+				L2 += l^2	
+				assert(E(v0) == 1.)	
+				V0 += E(v0) * l
+				V02 += (E(v0) * l).^2
+
+
+				# running mean and sum of squares
+		 		if (ll[n] > llmax) vmax = v0 end
+				llmin = min(llmin, ll[n])
+				llmax = max(llmax, ll[n])
+				lplambdamax =  max(lplambdamax, lplambda)
+				lplambdamin = min(lplambdamin, lplambda)
+			end	
+		end
+
+
+	
+		
+ 	
+		 
+		
+	#println("$L $V0 $V")    
 		if (0 == k % subsample)
 			print("$k:")
 		  
@@ -116,11 +128,12 @@ function raremh(K, N, E, sizeE, prop, q, v0,  B, A)
 			z1 = mc2(k, V, V2)
 			z2 = mc2(k,float64(V0), float64(V02))
 			
-			res[k/subsample, :] = [k z1[1] z1[2] z2[1] z2[2] round(llmin, 1)  round(llmax, 1)  round(lplambdamin,1) round(lplambdamax,1)  ]
+			res[k/subsample, :] = [k z1[1] z1[2] z2[1] z2[2] round(llmin, 1)  round(llmax, 1)  round(lplambdamin,1) round(lplambdamax,1) t[1] t[2] ]
 			
 	 
 		end	
 	end
+	println("Speed ratio: ", t[2]/t[1])
 end
 
 function rare(K, N, E, re, pe,  B, A)
@@ -168,6 +181,7 @@ function rare(K, N, E, re, pe,  B, A)
 	 	#ll = LinProc.llikelixcirc(0, T, yy, b, a, B, beta, lambda)
 		DW = randn(2, N-1) .* sqrt(ds)
 		u0 =  LinProc.UofX(0,u,  T, v0,  B, beta)
+		
 		yy = LinProc.eulerv(0.0, u0, LinProc.bU(T, v0, b, a, B, beta, lambda),  (s,x) -> sqrt(T)*sigma(LinProc.ddd(s,x, 0.0, T, v0,  B, beta)...), Ds, DW)
 		
 		ll = LinProc.llikeliU(S, yy, T, v0, b, a,  B, beta, lambda)
@@ -318,6 +332,6 @@ function D2()
 end	
 
 function D3()
- raremh(K, N, E, sizeE,  v -> re(), null, v, exp(-0.2*T)*bB,a(T,v) )
+ raremh(K, N, E, sizeE,  v -> re(), null, v, exp(-0.2*T)*bB,a(T,v), 10)
 end	
 #end

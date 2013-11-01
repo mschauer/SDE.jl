@@ -1,15 +1,30 @@
 #miscellenious helper functions and constants
+import Base.@math_const
+@math_const sqrt2     1.4142135623730950488 sqrt(big(2.))
+Q95 = sqrt2*erfinv(0.95)
+
 
 range(x) = (min(x), max(x))
 
 #95% normal quantile
 
-Q95 = sqrt(2)*erfinv(0.95)
 
 roundv(v::Vector, i) = map(i -> round(i, 2), v)
 roundv(v , i) = round(v,i)
 
 eps2 = sqrt(eps())
+
+
+
+
+intervalgaussian(U, a, b) = broadcast(intervalgaussian, U, a, b)
+function intervalgaussian (U::Real,a::Real, b::Real)
+	a, b = min(a,b), max(a,b)
+	c =  erf(a/sqrt2)   
+	d =  erf(b/sqrt2)  
+	sqrt2*erfinv(c + U.*(d-c))  
+end
+
 
 
 function scalar(x)
@@ -25,7 +40,8 @@ end
 
 
 function cut(x, a, b)
-  min(max(a, x), b)
+	warn("cut(): better use clamp()")
+	clamp(x, a,b)
 end
 #compute normal confidence interval for Monte Carlo estimate, precision aware rounding
 
