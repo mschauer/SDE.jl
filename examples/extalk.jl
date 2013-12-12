@@ -18,9 +18,9 @@ end
 
 
 function rgb(r,g, b)
-	r = cut(r,0.,1.)
-	g = cut(g,0.,1.)
-	b = cut(b,0.,1.)
+	r = clamp(r,0.,1.)
+	g = clamp(g,0.,1.)
+	b = clamp(b,0.,1.)
  	prod(("#",
 	repr(uint8(round(r*255.)))[3:],
 	repr(uint8(round(g*255.)))[3:],
@@ -36,7 +36,7 @@ function addpath1(p, t, y)
 end
 
 function addpath1(p, t, y, l)
-	l = cut(l, 0.0, 1.0)
+	l = clamp(l, 0.0, 1.0)
 	add(p, Curve(t,y, "color",rgb(l, 0., 1.-l, ), "linewidth", 20./M*(l+1.)/2.))
 	#print(rgb(l, 1.-l, 1. ), " ")
 	p
@@ -183,4 +183,4 @@ dp(p)
 
 
 println("Expect. at T/2: unweighted ($z0 $se0) weighted  ($z1 $se1) bridge  ($z2 $se2) ")
-println("Average weight: ", lmean, " theoretical ", exp(lp(T, 1.0, 0.5, B, beta, lambda*eye(1)))/exp(LinProc.lp0(T, 1.0, 0.5, 0, 1/a*eye(1))))
+println("Average weight: ", lmean, " theoretical ", exp(LinProc.lp(T, 1.0, 0.5, B, beta, lambda*eye(1)))/exp(LinProc.lp0(T, 1.0, 0.5, 0, 1/a*eye(1))))
