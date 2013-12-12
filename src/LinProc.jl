@@ -171,7 +171,7 @@ end
 #%  
 
 
-function llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
+function llikeliXcirc(t::Real, T, Xcirc, b, a,  B, beta, lambda)
 	N = size(Xcirc,2)
 	v = leading(Xcirc, N) #like [X, n]
 	function L(s,x)
@@ -179,19 +179,36 @@ function llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
 	  	return  (b(s,x) - B*x - beta)' * R - 0.5 *trace((a(s,x) - a(T,v)) *(LinProc.H(T-s, B, lambda) - R*R'))
 	end
 	
-	sum = 0
+	som = 0
 	s= t
 	x = similar(v)
 	for i in 0:N-1-1 #skip last value, summing over n-1 elements
 	  s = t + (T-t)*(i)/(N-1) 
 	  x = leading(Xcirc, i+1)
-	  sum += scalar(L(s, x)) * (T-t)/N
+	  som += scalar(L(s, x)) * (T-t)/N
 	end
-	sum += scalar( 2*sqrt(T-s)*(b(T,x) - B*x - beta)'* a(T,v)*(v-x)) #interpolate drift part of last interval like square root
+	som += scalar( 2*sqrt(T-s)*(b(T,x) - B*x - beta)'* a(T,v)*(v-x)) #interpolate drift part of last interval like square root
 	
-	sum
+	som
 end
 
+function llikeliXcirc(Ts::Vector, T, Xcirc, b, a,  B, beta, lambda)
+	N = size(Xcirc,2)
+	v = leading(Xcirc, N) #like [X, n]
+	function L(s,x)
+		R = LinProc.H(T-s, B, lambda)*(LinProc.V(T-s, v, B, beta)-x)
+	  	return  (b(s,x) - B*x - beta)' * R - 0.5 *trace((a(s,x) - a(T,v)) *(LinProc.H(T-s, B, lambda) - R*R'))
+	end
+	
+	som = 0
+	x = similar(v)
+	for i in 1:N-1 #skip last value, summing over n-1 elements
+	  x = leading(Xcirc, i)
+	  som += scalar(L(Ts[i], x)) * (Ts[i+1]-Ts[i])
+	end
+	
+	som
+end
 
 
 #%  .. function:: lp(h, x, y, b, beta, lambda)
@@ -316,8 +333,8 @@ function eulerv(t0, u, v, b, sigma, dt, dw::Matrix)
 	
 	for i in 1:N-1
 		subleading(X,i)[:] = y
-		t += dt[i]
 		y[:] = y .+  b(t,y)*(dt[i]) .+ sigma(t,y)*leading(dw, i)
+		t += dt[i]
 	
 	end
 	
@@ -330,7 +347,9 @@ function eulerv(t0, u, v, b, sigma, dt, dw::Matrix)
 end
 
 
-include("clark.jl")
+#include("clark.jl")
+include("timechange.jl")
+
 
 
 #%  .. function:: stable(Y, d, ep)
