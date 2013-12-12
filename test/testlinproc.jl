@@ -2,6 +2,7 @@
 
 for d in [1 2 3]
 for xi in [0.0 0.5]
+	global T, t, v, h, lambda, B, A, beta, s
 	println("Test dimension $d xi $xi")
 	# B = [-10.3268 .67701   -1.85162;
 	#   2.60125  -5.35212    0.4388; 
@@ -168,23 +169,39 @@ for xi in [0.0 0.5]
 #	a(t,x) = exp(-0.2*(T-t))*A
 
 
-	s = -log(1-t/T) 
+	s = LinProc.taui(t, T)
 
 	v1 = LinProc.Vtau (s,T, v, B, beta)
 	v2 = LinProc.V(T-t, v, B, beta)
 	
 	@test norm(v1-v2) < d^2*1E-13
-	v3 = LinProc.Vtau (27,T, v, B, beta)
+	#for clark
+#	v3 = LinProc.Clark.Vtau (27,T, v, B, beta) 
+#	@test norm(v-v3) < 1E-10
+
+
+	v3 = LinProc.Vtau (T,T, v, B, beta)
 	@test norm(v-v3) < 1E-10
 
-	J1 = T*exp(-s)*LinProc.H(T-t, B, lambda)
+#	J1 = T*exp(-s)*LinProc.H(T-t, B, lambda)
+	J1 = (T-s)^2/T*LinProc.H(T-t, B, lambda)
 	J2 = LinProc.J(s,T, B, A, lambda)
-	@test norm(J1-J2) < 1E-10
+	println(norm(J1-J2))
 
+	@test norm(J1-J2) < 1E-10
 	us =  LinProc.UofX(s,x,  T, v,  B, beta)
 	xt =  LinProc.XofU(s,us,  T, v,  B, beta)
 	@test norm(x - xt) < 1E-10
 
+
+	r1 =  LinProc.H(T-LinProc.tau(t,T), B, lambda)*(LinProc.V(T-LinProc.tau(t,T), v, B, beta)-LinProc.XofU(t,x,  T, v,  B, beta))
+	r2 =  LinProc.H(T-LinProc.tau(t,T), B, lambda)*(T-t)*x
+ 	r3 =  LinProc.J(t, T, B, A, lambda) *x*T/(T-t)
+	r4 = LinProc.r(T-LinProc.tau(t,T), LinProc.XofU(t,x,  T, v,  B, beta), v, B, beta, lambda)
+	@test norm(r3 - r4) < 1E-10
+
+	print(LinProc.J(t, T, B, A, lambda) *x*T/(T-t))
+	
 
 end
 end
