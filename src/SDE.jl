@@ -29,7 +29,7 @@ extendr(R1, mar) = (R1[1] -mar*(R1[2]-R1[1]),R1[2] + mar*(R1[2]-R1[1]))
 hrange(x) = extendr(range(x), 1/7)
 
 function syl(a, b, c)
-    !(issquare(a) && issquare(b) && isquare(c)) && error("Arguments not square matrices.")
+    !(issquare(a) && issquare(b) && issquare(c)) && error("Arguments not square matrices.")
 
     k = kron(eye(a), a) + kron(b', eye(b))
     xvec=k\vec(c)

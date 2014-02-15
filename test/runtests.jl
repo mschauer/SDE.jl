@@ -7,11 +7,10 @@ test_type = length(ARGS) == 1 ? ARGS[1] : "TEST"
 
 include("testdiff.jl")
 include("testsch.jl")
-include("testlyap.jl")
 include("testnonpar.jl")
 include("testlinproc.jl")
 
 if test_type == "ALL"
-	include("extendedtestclark.jl")
+	include("testtc.jl")
 end
 

@@ -1,3 +1,6 @@
+require(Pkg.dir("SDE","src", "Schauder.jl"))
+include(Pkg.dir("SDE","src", "NonparBayes.jl"))
+
 using Schauder
 using NonparBayes
 using Base.Test

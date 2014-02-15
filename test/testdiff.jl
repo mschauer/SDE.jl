@@ -1,3 +1,5 @@
+include(Pkg.dir("SDE","src", "Diffusion.jl"))
+
 using Diffusion
 srand(8)
 

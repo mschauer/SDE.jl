@@ -1,4 +1,6 @@
-# test linproc.jl
+include(Pkg.dir("SDE","src", "LinProc.jl"))
+require(Pkg.dir("SDE","src", "Randm.jl"))
+
 
 for d in [1 2 3]
 for xi in [0.0 0.5]
@@ -18,8 +20,8 @@ for xi in [0.0 0.5]
 	 A
 	end
 	if norm(B) > eps()
-		lambdal = Lyap.lyap(B', -A)
-		lambdas = Lyap.syl(B, B',-A)
+		lambdal = SDE.lyap(B', -A)
+		lambdas = SDE.syl(B, B',-A)
 	else
 		lambdal = inv(A)
 		lambdas = inv(A)
@@ -140,7 +142,7 @@ for xi in [0.0 0.5]
 		mu =  B*x0+beta
 		lambda = gamma = inv(A)
 		if (norm(B) > eps2)
-			lambda = Lyap.lyap(B', -A)
+			lambda = SDE.lyap(B', -A)
 		end
 		
 		l = chol(A)

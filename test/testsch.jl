@@ -1,3 +1,4 @@
+include(Pkg.dir("SDE","src", "Schauder.jl"))
 using Schauder
 
 th1 = sin(linspace(0,10,2^5-1))
