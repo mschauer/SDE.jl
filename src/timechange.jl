@@ -59,6 +59,18 @@ function XofU2(S,U, tmin, T, v,  B, beta)
 
 end
 
+function UofX2(S, X, T, v,  B, beta) 
+ 	
+	U = similar(X)
+	
+	for i in 1:length(S)
+		s = S[i]
+		x = X[:, i]
+		U[:, i] = (Vtau(s, T, v, B, beta)- x)/(T-s)
+	end
+	U
+end
+
 
 #helper functions
 
