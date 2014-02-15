@@ -13,3 +13,4 @@ This is work in progress. This package includes functionality to
 The layout/api is still the state of flux and the package is currently undergoing a major revision,
 I hope to have some nice version 1 in summer.
 
+[![Build Status](https://api.travis-ci.org/mschauer/SDE.jl.png)](https://travis-ci.org/mschauer/SDE.jl)
