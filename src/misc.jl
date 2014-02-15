@@ -4,7 +4,7 @@ import Base.@math_const
 Q95 = sqrt2*erfinv(0.95)
 
 
-range(x) = (min(x), max(x))
+range(x) = (minimum(x), maximum(x))
 
 #95% normal quantile
 
