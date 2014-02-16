@@ -1,5 +1,7 @@
-include(Pkg.dir("SDE","src", "Schauder.jl"))
-using Schauder
+#include(Pkg.dir("SDE","src", "Schauder.jl"))
+#using Schauder
+using SDE.Schauder
+using Base.Test
 
 th1 = sin(linspace(0,10,2^5-1))
 th2 = copy(th1)

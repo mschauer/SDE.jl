@@ -1,16 +1,16 @@
 using Base.Test
 require("SDE")
-include("../src/misc.jl")
-include("../src/quad.jl")
+#include("../src/misc.jl")
+#include("../src/quad.jl")
 
-test_type = length(ARGS) == 1 ? ARGS[1] : "TEST"
+test_type = length(ARGS) == 1 ? ARGS[1] : ""
 
-include("testdiff.jl")
+include("testsde.jl")
 include("testsch.jl")
-include("testnonpar.jl")
 include("testlinproc.jl")
 
-if test_type == "ALL"
+if test_type == "all"
 	include("testtc.jl")
 end
 
+include("testnonpar.jl")

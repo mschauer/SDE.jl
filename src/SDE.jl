@@ -1,6 +1,7 @@
 # http://sdejl.readthedocs.org/en/latest/
 module SDE
 using Cubature
+include("Schauder.jl")
 #using Debug
 #using Randm
 #using Distributions
@@ -335,7 +336,7 @@ end
 #%      Expectation :math:`E_(t,x)(X_{T})`
 #%      
 function mu(t, x, T, P::LinPro)
-    phi = expm(h*P.B)
+    phi = expm((T-t)*P.B)
     phi*(x + P.betabyB) - P.betabyB
 end    
 
@@ -459,9 +460,9 @@ end
 #%  
 
 function samplep(t, x, T, P::MvLinPro) 
-    phi = expm(h*P.B)
+    phi = expm((T-t)*P.B)
     mu = phi*(x + P.betabyB) - P.betabyB 
-    k = lambda - phi*lambda*phi'
+    k = P.lambda - phi*P.lambda*phi'
     l = chol(k)
 
     z = randn(length(x))
@@ -529,7 +530,16 @@ function lp(t, x, T, y, P::MvLinProInhomog)
     B, beta, A = P.B, P.beta, P.A
     a = s -> A
     
-     z = (x -  varV(t,T, y, ph, B, t -> beta))
+    z = (x -  varV(t,T, y, ph, B, t -> beta))
+    Q = varQ(t, T, ph,  B, a )
+    l = chol(Q, :L)
+    K =  expm(ph(T,t)*B)*Q*expm(ph(T,t)*B)'
+    (-1/2*length(x)*log(2pi) -log(apply(*,diag(chol(K)))) - 0.5*norm(l\z)^2) #  - 0.5*log(det(K(h,b, lambda)))
+end
+
+function varlp(t, x, T, y, ph, B, beta, A)
+    a = s -> A
+    z = (x -  varV(t,T, y, ph, B, t -> beta))
     Q = varQ(t, T, ph,  B, a )
     l = chol(Q, :L)
     K =  expm(ph(T,t)*B)*Q*expm(ph(T,t)*B)'
@@ -544,11 +554,6 @@ end
 #%      factor as argument. 
 #%          l = chol(a)
 #%  
-
-function samplep(s, x, t, P::MvAffPro )
-    z = randn(P.d)
-    x + P.l*z*sqrt(t-s) + h*P.mu
-end
 
 
 #%  .. function:: euler(u, W::CTPath, P::CTPro)
@@ -710,33 +715,33 @@ soft(t, tmin, T) = T-sqrt(T*(T + tmin - t))
 #%  
     
 # 
-xofu(s,u,  T, v,  P) = Vtofs(s, T, v, P)- (T-s)*u
+xofu(s,u,  T, v,  P) = Vs(s, T, v, P)- (T-s)*u
 
 #careful here, s is in U-time
-uofx(s,x,  T, v,  P)  = (Vtofs(s, T, v, P)- x)/(T-s)
+uofx(s,x,  T, v,  P)  = (Vs(s, T, v, P)- x)/(T-s)
 
 txofsu(s,u, tmin, T, v, P) = (tofs(s,tmin, T), xofu(s,u,  T, v, P))
 
 
-#%  .. function:: Vtofs (s, T, v, B, beta)
-#%        dotVtofs (s, T, v, B, beta)
+#%  .. function:: Vs (s, T, v, B, beta)
+#%        dotVs (s, T, v, B, beta)
 #%  
 #%      Time changed V and time changed time derivative of V for generation of U
 #%      
 
 
 
-function Vtofs (s, T, v, P::MvLinPro)
+function Vs (s, T, v, P::MvLinPro)
     expm(-P.B*(T - s)^2/T)*( v + P.betabyB) -  P.betabyB
 end
-function dotVtofs (s, T, v, P::MvLinPro)
+function dotVs (s, T, v, P::MvLinPro)
     expm(-P.B*(T - s)^2/T)*( P.B*v + P.beta) 
 end
 
-function Vtofs (s, T, v, P::MvAffPro)
+function Vs (s, T, v, P::MvAffPro)
     return v - (T - s)^2/T*P.mu
 end
-function dotVtofs (s, T, v,  P::MvAffPro)
+function dotVs (s, T, v,  P::MvAffPro)
     P.mu
 end
 
@@ -786,7 +791,7 @@ end
 
 function bU(s, u, tmin, T, v, Pt::Union(MvLinPro, MvAffPro), P)
     t, x = txofsu(s, u, tmin, T, v, Pt)
-    2./T*dotVtofs(s,T,v, Pt) - 2/T*b(t, x, P) +   1./(T-s)*(u-   2.*a(t, x, P)*J(s, T, Pt, u) )
+    2./T*dotVs(s,T,v, Pt) - 2/T*b(t, x, P) +   1./(T-s)*(u-   2.*a(t, x, P)*J(s, T, Pt, u) )
 end
 
 
@@ -824,7 +829,7 @@ function eulerU!(U::MvPath, ustart, W::MvPath, tmin, T, v, Pt::Union(MvLinPro, M
     for i in 1:N-1
         uu[:,i] = u
         t, x = txofsu(ss[i], u, tmin, T, v, Pt)
-    bU = 2/T*dotVtofs(ss[i],T,v, Pt) - 2/T*b(t, x, P) +   1/(T-ss[i])*(u - 2.*a(t, x, P)*J(ss[i], T, Pt, u) )
+    bU = 2/T*dotVs(ss[i],T,v, Pt) - 2/T*b(t, x, P) +   1/(T-ss[i])*(u - 2.*a(t, x, P)*J(ss[i], T, Pt, u) )
     sigmaU = -sqrt(2.0/(T*(T-ss[i])))*sigma(t, x, P)
         u[:] = u .+  bU*(ss[i+1]-ss[i]) .+ sigmaU*(ww[:, i+1]-ww[:, i])
     end
@@ -837,25 +842,6 @@ function eulerU(ustart, W::MvPath, tmin, T, v, Pt::Union(MvLinPro, MvAffPro),  P
     eulerU!(MvPath(copy(W.tt), zeros(Pt.d, length(W.tt))), ustart, W, tmin, T, v, Pt,  P)
 
 end
-
-#function eulerU(ustart, W::MvPath, tmin, T, v, Pt::MvPro,  P::MvPro)
-#    ww = W.yy
-#    ss = copy(W.tt)
-
-#    N = length(ss)
-#    uu = zeros(size(ustart)..., length(W.tt))
-#    u = copy(ustart)
-#        
-#    for i in 1:N-1
-#        uu[:,i] = u
-#        t, x = txofsu(ss[i], u, tmin, T, v, Pt)
-#    bU = 2/T*dotVtofs(ss[i],T,v, Pt) - 2/T*b(t, x, P) +   1/(T-ss[i])*(u-   2.*a(t, x, P)*J(ss[i], T, Pt, u) )
-#    sigmaU = -sqrt(2.0/(T*(T-ss[i])))*sigma(t, x, P)
-#        u[:] = u .+  bU*(ss[i+1]-ss[i]) .+ sigmaU*(ww[:, i+1]-ww[:, i])
-#    end
-#    uu[:,N] = 0u
-#    MvPath(ss, uu)
-#end
 
 #%  .. function:: stable(Y, d, ep)
 #%           
@@ -898,6 +884,25 @@ end
 
 ###
  
+
+#obtaining r via quadrature
+function varmu(t, x, T, P)
+    function f(s, y)
+        y[:] = expm(-s*P.B)*P.beta
+    end
+    integral = Cubature.hquadrature(length(P.beta), f, 0, T-t; reltol=1E-15, abstol=1E-15, maxevals=05000)[1]
+    expm((T-t)*P.B)*(x + integral)
+end    
+
+
+function varr(t, x, T, v, P)
+    mu = varmu(t, x, T, P)
+    expm((T-t)*P.B')*inv(K(t, T, P))*(v - mu) 
+end
+
+
+# inhomogenous cases
+
 function varH(t, T, B, a::Function)
     d = size(B,1)
     function f(s, y)
@@ -907,20 +912,6 @@ function varH(t, T, B, a::Function)
     inv(Q)
 end    
 
-#obtaining r via quadrature
-function varmu(h, x, B, beta)
-    function f(s, y)
-        y[:] = expm(-s*B)*beta
-    end
-    integral = Cubature.hquadrature(length(beta), f, 0, h; reltol=1E-15, abstol=1E-15, maxevals=05000)[1]
-    expm(h*B)*(x + integral)
-end    
-
-
-function varr(h, x, v, B, beta, lambda)
-    mu = varmu(h, x, B, beta)
-    expm(h*B')*inv(LinProc.K(h, B, lambda))*(v - mu) 
-end
 
 function varQ(s, T, ph, B, a::Function)
     d = size(B,1)
@@ -932,7 +923,7 @@ function varQ(s, T, ph, B, a::Function)
     Q
 end
  
-function varV(s,T, v, ph, B, beta)
+function varV(s, T, v, ph, B, beta)
     function f(tau, y)
         y[:] = expm(ph(s,tau)*B)*beta(tau)
     end

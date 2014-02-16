@@ -1,4 +1,4 @@
-#miscellenious helper functions and constants
+#miscellaneous helper functions and constants
 import Base.@math_const
 @math_const sqrt2     1.4142135623730950488 sqrt(big(2.))
 Q95 = sqrt2*erfinv(0.95)

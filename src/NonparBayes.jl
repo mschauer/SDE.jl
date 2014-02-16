@@ -1,7 +1,6 @@
 module NonparBayes
 export ex1, fex1, fex2, bayes_drift, test1, levelK, finger_pm, visualize_posterior
 using Schauder
-using Diffusion
 if  haskey(Pkg.installed(), "Winston")
 	using Winston
 end
@@ -269,7 +268,7 @@ end
 
 #int(chol(finger_matrix(pickup_Sigma!(fe_Sigma(rand(10000), 0, 1, 5)))) .!= 0)
 #memory intensive, using dot
-#dont be convused, even wavelets correspond to odd indices as julia indices start at 1
+#dont be confused, even wavelets correspond to odd indices as julia indices start at 1
 function fe_Sigma_dot(y, dt::Float64, L)
 	n = 2^(L-1)
 	S = zeros(2n-1, 2n-1)
