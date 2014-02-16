@@ -346,7 +346,7 @@ end
 
 #%  .. function:: K(t, T, P)
 #%           
-#%      Covariance matrix :math:`Cov(X_{t}, X_{T})`
+#%      Covariance matrix :math:`Cov(X_{T}-x_t)`
 #%      
 
 function K(t, T, P::LinPro)
@@ -355,7 +355,7 @@ function K(t, T, P::LinPro)
 end
 
 function K(t, T, P::AffPro)
-     (T-t)*gamma(P)
+     (T-t)*P.A
 end
 
 
@@ -443,13 +443,13 @@ end
 #%      Returns :math:`log p(t,x; T, y)`, the log transition density of the process ``P``
 #%  
 function lp(t, x, T, y, P::MvLinPro)
-    z = (x - V(t, T, y, P))
+    z = x - V(t, T, y, P)
     l = L(t, T, P)
-    (-1/2*P.d*log(2pi) -log(apply(*,diag(chol(K(t, T, P))))) - 0.5*norm(l\z)^2) #  - 0.5*log(det(K(h,b, lambda)))
+    -0.5*P.d*log(2pi) - log(prod(diag(chol(K(t, T, P))))) - 0.5*norm(l\z)^2
 end
 function lp(t, x, T, y, P::UvLinPro)
-    z = (x - V(t, T, y, P))
-    -0.5log(2pi) -log(sqrt(K(t, T, P))) - 0.5*norm(z)^2*H(t, T, P) #  - 0.5*log(det(K(h,b, lambda)))
+    z = x - V(t, T, y, P)
+    -0.5log(2pi*K(t, T, P)) - 0.5*norm(z)^2*H(t, T, P) 
 end
 
 
@@ -459,24 +459,34 @@ end
 #%      Samples from the transition density of the process ``P``.
 #%  
 
-function samplep(t, x, T, P::MvLinPro) 
-    phi = expm((T-t)*P.B)
-    mu = phi*(x + P.betabyB) - P.betabyB 
-    k = P.lambda - phi*P.lambda*phi'
-    l = chol(k)
+#function samplep(t, x, T, P::MvLinPro) 
+#    phi = expm((T-t)*P.B)
+#    mu = phi*(x + P.betabyB) - P.betabyB 
+#    k = P.lambda - phi*P.lambda*phi'
+#    l = chol(k)
 
-    z = randn(length(x))
-    mu + l*z
+#    z = randn(length(x))
+#    mu + l*z
+#end
+
+function samplep(t, x, T, P::MvLinPro) 
+    
+    m = mu(t, x, T, P)
+    k = K(t, T, P)
+    l = chol(k,:L)
+
+    z = randn(P.d)
+    m + l*z
 end
 
 
 function samplep(t, x, T, P::MvAffPro) 
         z = randn(length(x))
-        return x + chol(P.Gamma)\z*sqrt(T-t) + (T-t)*P.mu
+        return x + sqrt(T-t)*P.Sigma*z + (T-t)*P.mu
 end
 function samplep(t, x, T, P::UvAffPro) 
-        z = randn(length(x))
-        return x + z*sqrt(T-t)/P.Sigma + (T-t)*P.mu
+        z = randn()
+        return x + sqrt(T-t)*P.Sigma*z + (T-t)*P.mu
 end
 
 #%  .. function:: exact(u, tt, P)
@@ -525,25 +535,13 @@ function lp(s, x, t, y, P::UvAffPro)
      
 end
 
-function lp(t, x, T, y, P::MvLinProInhomog)
-    ph = P.ph
-    B, beta, A = P.B, P.beta, P.A
-    a = s -> A
-    
-    z = (x -  varV(t,T, y, ph, B, t -> beta))
-    Q = varQ(t, T, ph,  B, a )
-    l = chol(Q, :L)
-    K =  expm(ph(T,t)*B)*Q*expm(ph(T,t)*B)'
-    (-1/2*length(x)*log(2pi) -log(apply(*,diag(chol(K)))) - 0.5*norm(l\z)^2) #  - 0.5*log(det(K(h,b, lambda)))
-end
 
-function varlp(t, x, T, y, ph, B, beta, A)
-    a = s -> A
+function varlp(t, x, T, y, ph, B, beta, a)
     z = (x -  varV(t,T, y, ph, B, t -> beta))
     Q = varQ(t, T, ph,  B, a )
     l = chol(Q, :L)
     K =  expm(ph(T,t)*B)*Q*expm(ph(T,t)*B)'
-    (-1/2*length(x)*log(2pi) -log(apply(*,diag(chol(K)))) - 0.5*norm(l\z)^2) #  - 0.5*log(det(K(h,b, lambda)))
+    -1/2*length(x)*log(2pi) -log(prod(diag(chol(K)))) - 0.5*norm(l\z)^2
 end
 
 

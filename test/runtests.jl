@@ -1,8 +1,6 @@
 using Base.Test
 require("SDE")
-#include("../src/misc.jl")
-#include("../src/quad.jl")
-
+#is called with arg "travis" from travis
 test_type = length(ARGS) == 1 ? ARGS[1] : ""
 
 include("testsde.jl")

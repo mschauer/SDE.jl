@@ -2,6 +2,7 @@ using SDE
 using Cubature
 import SDE.b, SDE.sigma, SDE.a
 
+srand(9)
 if !isdefined(:MvTest)
 
 type MvTest <: MvPro
@@ -45,7 +46,7 @@ v = [0.5, -0.2]
 #taken slightly off 
 B = 1.2exp(-0.2*T)*B0 
  
-N = 100
+N = 500
  
 
 P = MvTest()
@@ -126,12 +127,8 @@ println("X°° at ", round(ttofss[ns],3), "($ns): ", "[", repr(mc(Y2t0[1,:])), "
 
 
 
-pt = exp(lp(0., u, T, v, Pt))
-Pinhomog = MvLinProInhomog(B0, beta0, ph0, sigma(T, v, P))
-
-
-
-	p = exp(lp(0., u, T, v, Pinhomog))
+    pt = exp(lp(0., u, T, v, Pt))
+	p = exp(SDE.varlp(0., u, T, v, ph0, B0, beta0, s->a(s, u, P)))
 	println("p ", round(p,5), " ", repr(mc(exp(Yll)*pt)), repr(mc(exp(Ull)*pt)) , repr(mc(exp(Y2ll)*pt)))
 	println("~p ", round(pt,5))
 	w1 = mc(pt/p*exp(Yll))

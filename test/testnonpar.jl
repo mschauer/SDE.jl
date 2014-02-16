@@ -1,7 +1,7 @@
 require(Pkg.dir("SDE","src", "Schauder.jl"))
 include(Pkg.dir("SDE","src", "NonparBayes.jl"))
 
-using Schauder
+#using SDE.Schauder
 using NonparBayes
 using Base.Test
 srand(10)
@@ -21,7 +21,7 @@ function pickedup_mu(y, L)
 			m[2i] = hat(y[t]*fn-fi +.5)
 		end
 		m[2n-1] = hat(y[t]*fn-fn+1)
-		m = pickup_mu!(m)
+		m = Schauder.pickup_mu!(m)
 		mu = mu .+ m .* dy[t]
 	end
 	mu
@@ -36,11 +36,11 @@ N = 100
 n = 2^L -1
 z = rand(N)
 p = finger_pm(L,0)
-pm = permutationmatrix(p)
+pm = Schauder.permutationmatrix(p)
 
 th1 = rand(n)*0.1 .+ linspace(0,1.,n)
 th2 = copy(th1)
-pickup!(th2)
+Schauder.pickup!(th2)
 
 
 mu1 = NonparBayes.fe_mu(z,L, 0)

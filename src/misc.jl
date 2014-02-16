@@ -1,7 +1,5 @@
 #miscellaneous helper functions and constants
-import Base.@math_const
-@math_const sqrt2     1.4142135623730950488 sqrt(big(2.))
-Q95 = sqrt2*erfinv(0.95)
+Q95 = sqrt(2.)*erfinv(0.95)
 
 
 range(x) = (minimum(x), maximum(x))
@@ -20,9 +18,9 @@ eps2 = sqrt(eps())
 intervalgaussian(U, a, b) = broadcast(intervalgaussian, U, a, b)
 function intervalgaussian (U::Real,a::Real, b::Real)
 	a, b = min(a,b), max(a,b)
-	c =  erf(a/sqrt2)   
-	d =  erf(b/sqrt2)  
-	sqrt2*erfinv(c + U.*(d-c))  
+	c =  erf(a/sqrt(2.))   
+	d =  erf(b/sqrt(2.))  
+	sqrt(2.)*erfinv(c + U.*(d-c))  
 end
 
 
