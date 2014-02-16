@@ -59,10 +59,11 @@ end
 # Covariance of a Brownian bridge from t_1 to t_2 (t_2-t)(s-t_1)/(t_2-t_1)
 # here (3-0.5)*(0.5-0)/(3) = 0.4166666666666667
 
-
-@test norm(mean(Bn(2,[1.,2.], [5.,7.],[1.,1.1, 1.3, 1.5, 3.], n, 4),2) -  [1.,2.] - ([5.,7.] - [1.,2.])*.5/2) < sqrt(quantile(Distributions.Chisq(2), 0.99))*sqrt(0.416/n)
+#cq = quantile(Distributions.Chisq(2), 0.99)
+qchisq = 9.21034037197618
+@test norm(mean(Bn(2,[1.,2.], [5.,7.],[1.,1.1, 1.3, 1.5, 3.], n, 4),2) -  [1.,2.] - ([5.,7.] - [1.,2.])*.5/2) < sqrt(qchisq)*sqrt(0.416/n)
 
  # (3-0.5)*(0.5-0.1)/(2.9) = 0.3448275862068966
-@test quantile(Distributions.Chisq(n),  0.005) < n*var(Bn(1,[1.], [5.],[0.1, 0.3, 0.5, 3.], n, 3),2 )[1]/0.345  <  quantile(Distributions.Chisq(n), 0.995)
+@test  chilower < n*var(Bn(1,[1.], [5.],[0.1, 0.3, 0.5, 3.], n, 3),2 )[1]/0.345  <  chiupper
 
 
