@@ -1,18 +1,17 @@
 module ExNonpar
 using SDE
-using Winston
-using Schauder
-using NonparBayes
-using Diffusion
-#include(joinpath("..",  "src","NonparBayes.jl"))
+using SDE.Schauder
+require(Pkg.dir("SDE","src", "SDEPlot.jl"))
+using SDEPlot
 
 
-	fex1(x) = 4(sin(2pi*x) - x)
-	fex2(x) = -4min(x+.5, 0) - 4max(x-.5, 0)
-	range(a) = (min(a), max(a))
+bex1(s,x) = 4(sin(2pi*x) - x)
+bex2(s,x) = -4min(x+.5, 0) - 4max(x-.5, 0)
+si(s,x) = 1.
+range(a) = (minimum(a), maximum(a))
 
 
-function ex1(L, logN,T, f, B)
+function example(L, logN,T, f, B; VERBOSE = 0)
 
 
 	global y, t
@@ -25,32 +24,34 @@ function ex1(L, logN,T, f, B)
 	if (B=="B2"); K = 2;end # Schauder basis plus two affine component
 				# otherwise Schauder basis
 
-	println("L $L, beta $beta")
+	VERBOSE > 0 && println("L $L, beta $beta")
 	N = 10^logN
 	dt = T/N
-	
-	y = euler(0, 0.5(b+a), (t,x)-> f(x), (t,x) -> 1, T/N, dW1(T, N))
-
+	P = Diffusion{1}(f, si, ())
+    tt = linspace(0., T, N+1)
+    W = sample(tt, Wiener())
+    u = 0.5(b+a)
+    y = euler(u, W, P).yy
 	
 	if (B == "B1")
-		truec = Schauder.fe_transfB1(x-> f(x), a,b, L)
+		truec = fe_transfB1(x-> f(0., x), a,b, L)
 	elseif (B == "B2")
-		truec = Schauder.fe_transfB2(x-> f(x), a,b, L)
+		truec = fe_transfB2(x-> f(0., x), a,b, L)
 	else
-		truec = Schauder.fe_transf(x-> f(x), a,b, L)
+		truec = fe_transf(x-> f(0., x), a,b, L)
 
 	end
-	println("true drift f.e. coefficients",truec')
+    VERBOSE > 0 && println("true drift f.e. coefficients",truec')
 
 	println("range y $(range(y))")
 
 	post = bayes_drift(y, dt, a, b, L, 10ones(K), beta , B) 
  
 
-	pl = visualize_posterior(post,f, 1.96)
+	pl = visualize_posterior(post,x -> f(0.,x), 1.96)
  
 	(post, pl)
 end
-println("Try: post = ExNonpar.ex1(5,5, 100, ExNonpar.fex1, \"B2\"); Winston.display(post[2])")
+println("Try: post = ExNonpar.example(5,5, 100, ExNonpar.bex1, \"B2\"); Winston.display(post[2])")
 
 end

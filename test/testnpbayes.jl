@@ -1,8 +1,4 @@
-require(Pkg.dir("SDE","src", "Schauder.jl"))
-include(Pkg.dir("SDE","src", "NonparBayes.jl"))
-
-#using SDE.Schauder
-using NonparBayes
+using SDE.Schauder
 using Base.Test
 srand(10)
 ## procudes the same as computing mu' and then performing pick_up(mu).
@@ -43,24 +39,24 @@ th2 = copy(th1)
 Schauder.pickup!(th2)
 
 
-mu1 = NonparBayes.fe_mu(z,L, 0)
+mu1 = Schauder.fe_mu(z,L, 0)
 mu1b = mu1
 if isdefined(:fe_mu_c)
-	mu1b = NonparBayes.fe_mu_c(z,L, 0)
+	mu1b = Schauder.fe_mu_c(z,L, 0)
 end
 #mu2 = pickedup_mu(z, L)
-mu2 = NonparBayes.pickup_mu!(NonparBayes.fe_mu(z,L, 0))
-mu2b = NonparBayes.pickup_mu!(copy(mu1))
+mu2 = Schauder.pickup_mu!(Schauder.fe_mu(z,L, 0))
+mu2b = Schauder.pickup_mu!(copy(mu1))
 
 tic()
-Sigma1 = NonparBayes.fe_Sigma_at(z,0.1, L)
+Sigma1 = Schauder.fe_Sigma_at(z,0.1, L)
 toc()
 tic()
-Sigma1b = NonparBayes.fe_Sigma_dot(z,0.1, L)
+Sigma1b = Schauder.fe_Sigma_dot(z,0.1, L)
 toc()
 
 Sigma2 = copy(Sigma1)
-Sigma2 = NonparBayes.pickup_Sigma!(Sigma2)
+Sigma2 = Schauder.pickup_Sigma!(Sigma2)
 
 println([th1 th2 mu1 mu1b mu2 mu2b])
 

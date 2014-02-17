@@ -11,4 +11,4 @@ if test_type == "all"
 	include("testtc.jl")
 end
 
-include("testnonpar.jl")
+include("testnpbayes.jl")

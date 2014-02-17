@@ -10,7 +10,8 @@ include("Schauder.jl")
 import Base.length
 export b, sigma, a, H, r, p, Bstar, Bcirc, Bsharp, euler, euler!, guidedeuler, guidedeuler!,  llikeliXcirc, samplep, lp, linexact, linll
  
-export CTPro, CTPath, UvPath, UvLinPro, UvAffPro, MvPath, MvPro, MvWiener, MvLinPro, MvAffPro, Wiener
+export CTPro, CTPath, UvPath, MvPath, MvPro, UvPro
+export UvLinPro, UvAffPro, MvWiener, MvLinPro, MvAffPro, Wiener, Diffusion
 export diff1, resample!, sample, samplebridge, setv!
 
 export soft, tofs, uofx, xofu, XofU, eulerU, eulerU!, llikeliU, MvLinProInhomog
@@ -263,11 +264,10 @@ type MvLinProInhomog <: MvPro
 end
 
 
-
-type MvDiffusion <: MvPro
+type Diffusion{Rank} <: CTPro{Rank}
     b 
     sigma
-    d::Int    
+    dims::Tuple    
 end
 
 
@@ -287,11 +287,11 @@ function a(s, x, P::CTPro)
 end
 
 
-function b(s, x, P::MvDiffusion)
+function b(s, x, P::Diffusion)
     P.b(s,x)
 end
 
-function sigma(s, x, P::MvDiffusion)
+function sigma(s, x, P::Diffusion)
     P.sigma(s,x)
 end
 

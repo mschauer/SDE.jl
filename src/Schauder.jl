@@ -309,6 +309,8 @@ function fe_transfB1(f, a,b, L)
 	return	[map!(f, a + [1:n]/(n+1)*(b-a)) .- 0.5(f(a) + f(b)), 0.5(f(a) + f(b))]
 end
 
+include("npbayes.jl")
+
 
 end
 
