@@ -32,7 +32,7 @@ export soft, tofs, uofx, xofu, XofU, eulerU, eulerU!, llikeliU, MvLinProInhomog
 #%               
 #%      Solves the Sylvester equation ``AX + XB = C``, where ``C`` is symmetric and 
 #%      ``A`` and ``-B`` have no common eigenvalues using (inefficient)
-#%    algebraic approach via the Kronecker product, see http://en.wikipedia.org/wiki/Sylvester_equation
+#%      algebraic approach via the Kronecker product, see http://en.wikipedia.org/wiki/Sylvester_equation
 #%  
 function issquare(a::Matrix)
      size(a,2) == size(a,1)
@@ -523,9 +523,9 @@ end
 
 
 
-#%  .. function:: lp0(h, x, y,  mu, gamma)
+#%  .. function:: lp(s, x, t, y, P)
 #%           
-#%      Returns :math:`log p(t,x; T, y)`, the log transition density of a Brownian motion with drift mu and diffusion a=inv(gamma), h = T - t 
+#%      Returns :math:`log p(t,x; T, y)`, the log transition density
 #%  
 function lp(s, x, t, y, P::MvAffPro)
       -1/2*P.d*log(2pi*(t-s)) + 0.5*log(det(P.Gamma))  -dot(0.5*(y-x-(t-s)*P.mu), P.Gamma*(y-x-(t-s)*P.mu)/(t-s))
@@ -546,13 +546,6 @@ function varlp(t, x, T, y, ph, B, beta, a)
 end
 
 
-
-#%  .. function:: samplep0(h, x, mu, l) 
-#%           
-#%      Samples from the transition density a affine Brownian motion. Takes the Cholesky
-#%      factor as argument. 
-#%          l = chol(a)
-#%  
 
 
 #%  .. function:: euler(u, W::CTPath, P::CTPro)
@@ -650,7 +643,7 @@ end
 #%          b, sigma -- diffusion coefficient sigma target
 #%          B, beta -- drift b(x) = Bx + beta of Xtilde
 #%          lambda -- solution of the lyapunov equation for Xtilde
-#%  
+#%      
 
 
 function llikeliXcirc(Xcirc::MvPath, Pt::MvPro, P::MvPro)
@@ -696,7 +689,7 @@ end
 ################################################################
 
 #%  .. function:: tofs(s, T)
-#%        soft(t, T)
+#%                soft(t, T)
 #%  
 #%      Time change mapping s in [0, T] (U-time) to t in [t_1, t_2] (X-time), and inverse.
 #%      
@@ -708,10 +701,12 @@ soft(t, tmin, T) = T-sqrt(T*(T + tmin - t))
 
 #%  .. function:: XofU(UU, tmin, T, v, P) 
 #%    
-#%  U is the scaled and time changed process 
-#%      U(s)= exp(s/2.)*(v(s) - X(tofs(s))) 
-#%  XofU transforms entire process U sampled at time points ss to X at tt.
-#%  
+#%      U is the scaled and time changed process 
+#%      
+#%          U(s)= exp(s/2.)*(v(s) - X(tofs(s))) 
+#%      
+#%      XofU transforms entire process U sampled at time points ss to X at tt.
+#%      
     
 # 
 xofu(s,u,  T, v,  P) = Vs(s, T, v, P)- (T-s)*u
@@ -723,7 +718,7 @@ txofsu(s,u, tmin, T, v, P) = (tofs(s,tmin, T), xofu(s,u,  T, v, P))
 
 
 #%  .. function:: Vs (s, T, v, B, beta)
-#%        dotVs (s, T, v, B, beta)
+#%                dotVs (s, T, v, B, beta)
 #%  
 #%      Time changed V and time changed time derivative of V for generation of U
 #%      
@@ -844,12 +839,12 @@ end
 
 #%  .. function:: stable(Y, d, ep)
 #%           
-#%     Return real stable `d`-dim matrix with real eigenvalues smaller than `-ep` parametrized with a vector of length `d*d`, 
+#%      Return real stable `d`-dim matrix with real eigenvalues smaller than `-ep` parametrized with a vector of length `d*d`, 
 #%  
 #%  
 #%      For maximum likelihood estimation we need to search the maximum over all stable matrices.
-#%    These are matrices with eigenvalues with strictly negative real parts.
-#%    We obtain a dxd stable matrix as difference of a antisymmetric matrix and a positive definite matrix.
+#%      These are matrices with eigenvalues with strictly negative real parts.
+#%      We obtain a dxd stable matrix as difference of a antisymmetric matrix and a positive definite matrix.
 #%  
 
 

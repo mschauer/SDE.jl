@@ -11,7 +11,7 @@ Miscellaneous
              
     Solves the Sylvester equation ``AX + XB = C``, where ``C`` is symmetric and 
     ``A`` and ``-B`` have no common eigenvalues using (inefficient)
-  algebraic approach via the Kronecker product, see http://en.wikipedia.org/wiki/Sylvester_equation
+    algebraic approach via the Kronecker product, see http://en.wikipedia.org/wiki/Sylvester_equation
 
 
 Stochastic Processes
@@ -59,15 +59,9 @@ Stochastic Processes
     Compute log likelihood evaluated in `B`, `beta` and Lyapunov matrix `lambda`
     for a observed linear process on a discrete grid `dt` from its transition density.
 
-.. function:: lp0(h, x, y,  mu, gamma)
+.. function:: lp(s, x, t, y, P)
          
-    Returns :math:`log p(t,x; T, y)`, the log transition density of a Brownian motion with drift mu and diffusion a=inv(gamma), h = T - t 
-
-.. function:: samplep0(h, x, mu, l) 
-         
-    Samples from the transition density a affine Brownian motion. Takes the Cholesky
-    factor as argument. 
-        l = chol(a)
+    Returns :math:`log p(t,x; T, y)`, the log transition density
 
 .. function:: euler(u, W::CTPath, P::CTPro)
 
@@ -82,29 +76,31 @@ Stochastic Processes
         b, sigma -- diffusion coefficient sigma target
         B, beta -- drift b(x) = Bx + beta of Xtilde
         lambda -- solution of the lyapunov equation for Xtilde
-
+    
 .. function:: tofs(s, T)
-      soft(t, T)
+              soft(t, T)
 
     Time change mapping s in [0, T] (U-time) to t in [t_1, t_2] (X-time), and inverse.
     
 .. function:: XofU(UU, tmin, T, v, P) 
   
-U is the scaled and time changed process 
-    U(s)= exp(s/2.)*(v(s) - X(tofs(s))) 
-XofU transforms entire process U sampled at time points ss to X at tt.
-
+    U is the scaled and time changed process 
+    
+        U(s)= exp(s/2.)*(v(s) - X(tofs(s))) 
+    
+    XofU transforms entire process U sampled at time points ss to X at tt.
+    
 .. function:: Vs (s, T, v, B, beta)
-      dotVs (s, T, v, B, beta)
+              dotVs (s, T, v, B, beta)
 
     Time changed V and time changed time derivative of V for generation of U
     
 .. function:: stable(Y, d, ep)
          
-   Return real stable `d`-dim matrix with real eigenvalues smaller than `-ep` parametrized with a vector of length `d*d`, 
+    Return real stable `d`-dim matrix with real eigenvalues smaller than `-ep` parametrized with a vector of length `d*d`, 
 
 
     For maximum likelihood estimation we need to search the maximum over all stable matrices.
-  These are matrices with eigenvalues with strictly negative real parts.
-  We obtain a dxd stable matrix as difference of a antisymmetric matrix and a positive definite matrix.
+    These are matrices with eigenvalues with strictly negative real parts.
+    We obtain a dxd stable matrix as difference of a antisymmetric matrix and a positive definite matrix.
 
