@@ -1,3 +1,12 @@
+#%  .. currentmodule:: SDE
+#%    
+
+#%  SDE
+#%  ------- 
+#%
+#%  
+#%  
+
 # http://sdejl.readthedocs.org/en/latest/
 module SDE
 using Cubature
@@ -15,6 +24,9 @@ export UvLinPro, UvAffPro, MvWiener, MvLinPro, MvAffPro, Wiener, Diffusion
 export diff1, resample!, sample, samplebridge, setv!
 
 export soft, tofs, uofx, xofu, XofU, eulerU, eulerU!, llikeliU, MvLinProInhomog
+
+#%  Miscellaneous
+#%  ~~~~~~~~~~~~~
 
 #%  .. function:: syl(a, b, c)
 #%               
@@ -41,20 +53,9 @@ end
 lyap(b, c) = syl(b', b, c)
 lyap(b::Float64, mina::Float64) = -0.5a/b
 
-#%  .. currentmodule:: SDE
-#%    
-
-#%  SDE
-#%  ------- 
-#%
 #%  
-#%  
-
-
-
-#%  
-#%  Reference 
-#%  ~~~~~~~~~
+#%  Stochastic Processes
+#%  ~~~~~~~~~~~~~~~~~~~~
 #%
 
  
@@ -929,22 +930,6 @@ function varV(s, T, v, ph, B, beta)
     
 end
 
-
-function graph(X::MvPath)
-    p = FramedPlot()
-    if ndims(X.yy) == 1 || (ndims(X.yy) == 2 && size(X.yy,1) == 1)
-        setattr(p, "xrange", SDE.hrange(X.tt))
-        setattr(p, "yrange", SDE.hrange(X.yy[:]))
-        add(p, Curve(X.tt,X.yy[:], "color","black", "linewidth", 0.5))
-    
-    elseif ndims(X.yy) == 2 && size(X.yy,1) == 2
-        setattr(p, "xrange", SDE.hrange(X.yy[1,:]))
-        setattr(p, "yrange", SDE.hrange(X.yy[2,:]))
-        add(p, Curve(X.yy[1,:],X.yy[2,:], "color","black", "linewidth", 0.5))
-    
-    end
-    p
-end
     
 
 
