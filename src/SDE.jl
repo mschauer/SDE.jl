@@ -17,13 +17,15 @@ include("Schauder.jl")
 #using NumericExtensions
 
 import Base.length
+import Base.vec
+
 export b, sigma, a, H, r, p, Bstar, Bcirc, Bsharp, euler, euler!, guidedeuler, guidedeuler!,  llikeliXcirc, samplep, lp, linexact, linll
  
 export CTPro, CTPath, UvPath, MvPath, MvPro, UvPro
 export UvLinPro, UvAffPro, MvWiener, MvLinPro, MvAffPro, Wiener, Diffusion
 export diff1, resample!, sample, samplebridge, setv!
 
-export soft, tofs, uofx, xofu, XofU, eulerU, eulerU!, llikeliU, MvLinProInhomog
+export soft, tofs, uofx, xofu, XofU, UofX, eulerU, eulerU!, llikeliU, MvLinProInhomog
 
 #%  Miscellaneous
 #%  ~~~~~~~~~~~~~
@@ -38,6 +40,7 @@ function issquare(a::Matrix)
      size(a,2) == size(a,1)
 end
 
+vec(x::Number) = x
 range(x) = (min(x), max(x))
 extendr(R1, mar) = (R1[1] -mar*(R1[2]-R1[1]),R1[2] + mar*(R1[2]-R1[1]))
 hrange(x) = extendr(range(x), 1/7)
@@ -688,13 +691,14 @@ end
 
 ################################################################
 
-#%  .. function:: tofs(s, T)
-#%                soft(t, T)
+#%  .. function:: tofs(s, tmin, T)
+#%                soft(t, tmin, T)
 #%  
-#%      Time change mapping s in [0, T] (U-time) to t in [t_1, t_2] (X-time), and inverse.
+#%      Time change mapping s in [0, T=t_2 - t_1] (U-time) to t in [t_1, t_2] (X-time), and inverse.
 #%      
 
-tofs(s, tmin, T) = tmin .+ s.*(2. .- s/T) # T(1- (1-s/T)^2)
+#s*(2 - s/T) = T - T(1 - s/T)^2 = T - (T - s)^2/T
+tofs(s, tmin, T) = tmin .+ s.*(2. .- s/T) 
 soft(t, tmin, T) = T-sqrt(T*(T + tmin - t))
 
 
@@ -709,12 +713,12 @@ soft(t, tmin, T) = T-sqrt(T*(T + tmin - t))
 #%      
     
 # 
-xofu(s,u,  T, v,  P) = Vs(s, T, v, P)- (T-s)*u
+xofu(s, u, T, v,  P) = Vs(s, T, v, P)- (T-s)*u
 
 #careful here, s is in U-time
-uofx(s,x,  T, v,  P)  = (Vs(s, T, v, P)- x)/(T-s)
+uofx(s, x, T, v,  P)  = (Vs(s, T, v, P)- x)/(T-s)
 
-txofsu(s,u, tmin, T, v, P) = (tofs(s,tmin, T), xofu(s,u,  T, v, P))
+txofsu(s,u, tmin, T, v, P) = (tofs(s, tmin, T), xofu(s, u, T, v, P))
 
 
 #%  .. function:: Vs (s, T, v, B, beta)
@@ -725,67 +729,98 @@ txofsu(s,u, tmin, T, v, P) = (tofs(s,tmin, T), xofu(s,u,  T, v, P))
 
 
 
-function Vs (s, T, v, P::MvLinPro)
-    expm(-P.B*(T - s)^2/T)*( v + P.betabyB) -  P.betabyB
+function Vs (s, T, v, P::LinPro)
+    expm(-P.B*T*(1. - s/T)^2)*( v + P.betabyB) -  P.betabyB
 end
-function dotVs (s, T, v, P::MvLinPro)
-    expm(-P.B*(T - s)^2/T)*( P.B*v + P.beta) 
+function dotVs (s, T, v, P::LinPro)
+    expm(-P.B*T*(1. - s/T)^2)*( P.B*v + P.beta) 
 end
 
-function Vs (s, T, v, P::MvAffPro)
-    return v - (T - s)^2/T*P.mu
+function Vs (s, T, v, P::AffPro)
+    return v - T*(1. - s/T)^2*P.mu
 end
-function dotVs (s, T, v,  P::MvAffPro)
+function dotVs (s, T, v,  P::AffPro)
     P.mu
 end
 
+function XofU{L}(U, tmin, T, v, P::CTPro{L}) 
+    X = CTPath{L}(copy(U.tt), copy(U.yy))
+    XofU!(X, U, tmin, T, v, P) 
+end
 
 
-function XofU!(XX, UU, tmin, T, v, P) 
-    ss = UU.tt
-    U = UU.yy
+function XofU!(X, U, tmin, T, v, P::MvPro) 
+    ss = U.tt
+    U = U.yy
     for i in 1:length(ss)
         s = ss[i]
         u = U[:, i]
-        XX.tt[i] = tmin + tofs(s,tmin, T)
-        XX.yy[:, i] = xofu(s,u,  T, v,  P)
+        X.tt[i] = tofs(s,tmin, T)
+        X.yy[:, i] = xofu(s,u,  T, v,  P)
     end
-    XX
+    X
 end
 
-function XofU(UU, tmin, T, v, P) 
-    XX = MvPath(copy(UU.tt), copy(UU.yy))
-    XofU!(XX, UU, tmin, T, v, P) 
+
+function XofU!(X, U, tmin, T, v, P::UvPro) 
+    ss = U.tt
+    U = U.yy
+    for i in 1:length(ss)
+        s = ss[i]
+        u = U[i]
+        X.tt[i] = tofs(s,tmin, T)
+        X.yy[i] = xofu(s,u,  T, v,  P)
+    end
+    X
 end
+
+function UofX{L}(X, tmin, T, v, P::CTPro{L}) 
+    U = CTPath{L}(copy(X.tt), copy(X.yy))
+    UofX!(U, X, tmin, T, v, P) 
+end
+
+
+function UofX!(U, X, tmin, T, v, P::UvPro) 
+    tt = X.tt
+    yy = X.yy
+    for i in 1:length(tt)
+        t = tt[i]
+        x = yy[i]
+        U.tt[i] = s = soft(t,tmin, T)
+        U.yy[i] = uofx(s, yy[i],  T, v,  P)
+    end
+    U
+end
+
 
 #helper functions
 
 
-function J(s,T, P::MvLinPro, x)
-    phim = expm(-(T-s)^2/T*P.B)
+function J(s,T, P::LinPro, x)
+    phim = expm(-T*(1. - s/T)^2*P.B)
     sl = P.lambda*T/(T-s)^2
     ( phim*sl*phim'-sl)\x
 end
 
 
-function J(s,T, P::MvAffPro, x)
+function J(s,T, P::AffPro, x)
     P.Gamma*x
 end    
 
-function J(s,T, P::MvLinPro)
-    phim = expm(-(T-s)^2/T*P.B)
+function J(s,T, P::LinPro)
+    phim = expm(-T*(1. - s/T)^2*P.B)
     sl = P.lambda*T/(T-s)^2
     inv( phim*sl*phim'-sl)
 end
 
 
-function J(s,T, P::MvAffPro)
+function J(s,T, P::AffPro)
     P.Gamma
 end
 
-function bU(s, u, tmin, T, v, Pt::Union(MvLinPro, MvAffPro), P)
+function bU(s, u, tmin, T, v, Pt::Union(LinPro, AffPro), P)
     t, x = txofsu(s, u, tmin, T, v, Pt)
-    2./T*dotVs(s,T,v, Pt) - 2/T*b(t, x, P) +   1./(T-s)*(u-   2.*a(t, x, P)*J(s, T, Pt, u) )
+    2./T*dotVs(s,T,v, Pt) - 2/T*b(t, x, P) + 1./(T-s)*(u-   2.*a(t, x, P)*J(s, T, Pt, u) )
 end
 
 
@@ -794,7 +829,7 @@ function llikeliU(U, tmin, T, v, Pt::Union(MvLinPro, MvAffPro), P)
     ss = U.tt
     uu = U.yy
     
-    N = size(uu,2)
+    N = length(ss)
     som = 0. 
     for i in 1:N-1
         s = ss[i]
@@ -805,6 +840,27 @@ function llikeliU(U, tmin, T, v, Pt::Union(MvLinPro, MvAffPro), P)
 
         z1 = 2*dot(b(t, x, P)  - b(t,x, Pt),ju)
         z2 = -1./(T-s)*trace((a(t,x, P) - a(t,x, Pt)) *( j - T*ju*ju' ))
+        som += (z1 + z2)*(ss[i+1]-ss[i])
+    end
+    som
+ 
+end
+
+function llikeliU(U, tmin, T, v, Pt::Union(UvLinPro, UvAffPro), P)
+    ss = U.tt
+    uu = U.yy
+    
+    N = length(ss)
+    som = 0. 
+    for i in 1:N-1
+        s = ss[i]
+        u = uu[i]
+        j = J(s, T, Pt)
+        ju = j*u
+        t, x = txofsu(s, u, tmin, T, v, Pt)
+
+        z1 = 2.*(b(t, x, P)  - b(t,x, Pt))*ju
+        z2 = -1./(T-s)*((a(t,x, P) - a(t,x, Pt)) *( j - T*ju*ju))
         som += (z1 + z2)*(ss[i+1]-ss[i])
     end
     som
@@ -823,17 +879,44 @@ function eulerU!(U::MvPath, ustart, W::MvPath, tmin, T, v, Pt::Union(MvLinPro, M
     for i in 1:N-1
         uu[:,i] = u
         t, x = txofsu(ss[i], u, tmin, T, v, Pt)
-    bU = 2/T*dotVs(ss[i],T,v, Pt) - 2/T*b(t, x, P) +   1/(T-ss[i])*(u - 2.*a(t, x, P)*J(ss[i], T, Pt, u) )
-    sigmaU = -sqrt(2.0/(T*(T-ss[i])))*sigma(t, x, P)
+        bU = 2/T*dotVs(ss[i],T,v, Pt) - 2/T*b(t, x, P) +   1/(T-ss[i])*(u - 2.*a(t, x, P)*J(ss[i], T, Pt, u) )
+        sigmaU = -sqrt(2.0/(T*(T-ss[i])))*sigma(t, x, P)
         u[:] = u .+  bU*(ss[i+1]-ss[i]) .+ sigmaU*(ww[:, i+1]-ww[:, i])
     end
     uu[:,N] = 0u
     U
 end
 
+function eulerU!(U::UvPath, ustart, W::UvPath, tmin, T, v, Pt::Union(UvLinPro, UvAffPro),  P::UvPro)
+    ww = W.yy
+    U.tt[:] = W.tt
+    ss, uu = U.tt, U.yy
+
+    N = length(ss)
+
+    u = ustart
+        
+    for i in 1:N-1
+        uu[i] = u
+        s = ss[i]
+        t, x = txofsu(s, u, tmin, T, v, Pt)
+        bU = 2/T*dotVs(s,T,v, Pt) - 2/T*b(t, x, P) +   1/(T-s)*(u - 2.*a(t, x, P)*J(s, T, Pt, u) )
+        sigmaU = -sqrt(2.0/(T*(T-s)))*sigma(t, x, P)
+        u += bU*(ss[i+1]-s) + sigmaU*(ww[i+1]-ww[i])
+    end
+    uu[N] = 0*u
+    U
+end
+
 function eulerU(ustart, W::MvPath, tmin, T, v, Pt::Union(MvLinPro, MvAffPro),  P::MvPro)
 
     eulerU!(MvPath(copy(W.tt), zeros(Pt.d, length(W.tt))), ustart, W, tmin, T, v, Pt,  P)
+
+end
+
+function eulerU(ustart, W::UvPath, tmin, T, v, Pt::Union(UvLinPro, UvAffPro),  P::UvPro)
+
+    eulerU!(UvPath(copy(W.tt), zeros(length(W.tt))), ustart, W, tmin, T, v, Pt,  P)
 
 end
 
