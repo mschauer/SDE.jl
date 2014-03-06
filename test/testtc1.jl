@@ -101,14 +101,14 @@ s0 = soft(t0, 0, T)
 ns = 1 + int(floor(s0/ds))
 s0 = ds*(ns-1)
 
-
+@Test.test abs(1.-SDE.J(T-0.001, T, Pt)*a(T, 0., Pt)) < 0.001
 
 u0 = uofx(0.0, u,  T, v, Pt)
 W = sample(ss, Wiener())
 U = eulerU(u0, W, 0., T, v, Pt, P)
 @time for i in 1:M
  	resample!(W, Wiener())
-	eulerU!(U, u0, W, 0., T, v, Pt, P)
+	U = eulerU(u0, W, 0., T, v, Pt, P)
 	YU = XofU(U, 0., T, v, Pt) 
 	llu = llikeliU(U, 0., T, v, Pt, P)
 	llyu = llikeliXcirc(YU, Pt, P)

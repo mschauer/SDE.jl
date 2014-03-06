@@ -25,7 +25,7 @@ export CTPro, CTPath, UvPath, MvPath, MvPro, UvPro
 export UvLinPro, UvAffPro, MvWiener, MvLinPro, MvAffPro, Wiener, Diffusion
 export diff1, resample!, sample, samplebridge, setv!
 
-export soft, tofs, uofx, xofu, XofU, UofX, eulerU, eulerU!, llikeliU, MvLinProInhomog
+export soft, tofs, uofx, xofu, XofU, XofU!, UofX, eulerU, eulerU!, llikeliU, MvLinProInhomog
 
 #%  Miscellaneous
 #%  ~~~~~~~~~~~~~
@@ -358,8 +358,11 @@ function K(t, T, P::LinPro)
     P.lambda - phi*P.lambda*phi'
 end
 
-function K(t, T, P::AffPro)
+function K(t, T, P::MvAffPro)
      (T-t)*P.A
+end
+function K(t, T, P::UvAffPro)
+     (T-t)*P.sigma^2
 end
 
 
@@ -400,6 +403,9 @@ end
 
 function H(t, T, P::AffPro)
     gamma(P)/(T-t)
+end
+function H(t, T, P::AffPro, x)
+    gamma(P)/(T-t)*x
 end
 
 
@@ -535,10 +541,8 @@ function lp(s, x, t, y, P::MvAffPro)
      
 end
 function lp(s, x, t, y, P::UvAffPro)
-      -1/2*log(2pi*(t-s)) - log(abs(P.Sigma))  - 0.5*(y-x-(t-s)*P.mu)*(y-x-(t-s)*P.mu)/(P.sigma*P.sigma*(t-s))
-     
+      -1/2*log(2pi*(t-s)) - log(abs(P.Sigma))  - 0.5*(y-x-(t-s)*P.mu)*(y-x-(t-s)*P.mu)/(P.Sigma*P.Sigma*(t-s))
 end
-
 
 function varlp(t, x, T, y, ph, B, beta, a)
     z = (x -  varV(t,T, y, ph, B, t -> beta))
@@ -804,7 +808,7 @@ end
 
 
 function J(s,T, P::AffPro, x)
-    P.Gamma*x
+    gamma(P)*x
 end    
 
 function J(s,T, P::LinPro)
@@ -815,14 +819,13 @@ end
 
 
 function J(s,T, P::AffPro)
-    P.Gamma
+    gamma(P)
 end
 
 function bU(s, u, tmin, T, v, Pt::Union(LinPro, AffPro), P)
     t, x = txofsu(s, u, tmin, T, v, Pt)
-    2./T*dotVs(s,T,v, Pt) - 2/T*b(t, x, P) + 1./(T-s)*(u-   2.*a(t, x, P)*J(s, T, Pt, u) )
+    2./T*dotVs(s,T,v, Pt) - 2/T*b(t, x, P) + 1./(T-s)*(u-2.*a(t, x, P)*J(s, T, Pt, u) )
 end
-
 
 
 function llikeliU(U, tmin, T, v, Pt::Union(MvLinPro, MvAffPro), P)

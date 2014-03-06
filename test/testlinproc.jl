@@ -42,6 +42,7 @@ for d in [1:3]
 	
 	P = MvLinPro(B, beta, Si)
 	P0 = MvAffPro(beta, Si)
+	P00 = MvLinPro(eye(d)*1E-7, beta, Si)
 	
 	function aa(s)
 	 A
@@ -60,8 +61,12 @@ for d in [1:3]
     H1 = SDE.H(t,T, P)
     H2 = SDE.varH(t, T, B, aa)
     K = SDE.K(t, T, P)
-    K0 = SDE.K(t, T, P0)
     H3 = expm((T-t)*B')*inv(K)*expm((T-t)*B)
+    
+    H0 = SDE.H(t, T, P0)
+    K0 = SDE.K(t, T, P0)
+    H00 = SDE.H(t, T, P00)
+    @test norm(H0 - H00) < 1E-5*d^2
     
 
 	h = T-t
@@ -98,6 +103,11 @@ for d in [1:3]
 
 	r3 = varr3(t, x, T, v, P)
 	@test norm(r1 - r3) < 1E-10
+	
+	r10 = SDE.r(t, x, T, v, P0)
+	r100 = SDE.r(t, x, T, v, P00)
+	@test norm(r10 - r100) < 1E-5*d^2
+	
 
 	println("Test SDE.mu")
 
@@ -170,6 +180,13 @@ for d in [1:3]
 	v2 = SDE.V(t, T, v, P)
 	
 	@test norm(v1-v2) < d^2*1E-13
+	
+	v1 = SDE.Vs(s, T, v, P0)
+	v2 = SDE.V(t, T, v, P0)
+	
+	@test norm(v1-v2) < d^2*1E-13
+	
+	
 
 	us =  SDE.uofx(s, x, T, v,  P)
 	xt =  SDE.xofu(s, us,  T, v,  P)
