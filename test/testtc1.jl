@@ -51,7 +51,7 @@ P = Model()
 Pt = UvLinPro(B, beta0, sigma(T, v, P))
 
 
-tt = linspace(0., T, N)
+tt = linspace(0.,T, N)
 dt = (tt[N]-tt[1])/(N-1)
 
 ss = linspace(0.,T, N)
@@ -79,7 +79,7 @@ nt = int(floor(5N/10))
 
 
 t0 =  dt*(nt-1)
-W = sample(ss, Wiener())
+W = sample(tt, Wiener())
 
 @time for i in 1:M
 	resample!(W, Wiener())

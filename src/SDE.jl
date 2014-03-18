@@ -701,7 +701,7 @@ end
 #%      Time change mapping s in [0, T=t_2 - t_1] (U-time) to t in [t_1, t_2] (X-time), and inverse.
 #%      
 
-#s*(2 - s/T) = T - T(1 - s/T)^2 = T - (T - s)^2/T
+#t = tmin + s*(2 - s/T) = tmin + T - T(1 - s/T)^2 = tmax - (T - s)^2/T
 tofs(s, tmin, T) = tmin .+ s.*(2. .- s/T) 
 soft(t, tmin, T) = T-sqrt(T*(T + tmin - t))
 
@@ -717,7 +717,7 @@ soft(t, tmin, T) = T-sqrt(T*(T + tmin - t))
 #%      
     
 # 
-xofu(s, u, T, v,  P) = Vs(s, T, v, P)- (T-s)*u
+xofu(s, u, T, v,  P) = Vs(s, T, v, P) - (T-s)*u
 
 #careful here, s is in U-time
 uofx(s, x, T, v,  P)  = (Vs(s, T, v, P)- x)/(T-s)
@@ -740,6 +740,11 @@ function dotVs (s, T, v, P::LinPro)
     expm(-P.B*T*(1. - s/T)^2)*( P.B*v + P.beta) 
 end
 
+
+#  return v - (tmax-t)*P.mu
+#  t = tmax - (T - s)^2/T
+#  v - (T-s)^2/T*P.mu
+
 function Vs (s, T, v, P::AffPro)
     return v - T*(1. - s/T)^2*P.mu
 end
@@ -759,8 +764,8 @@ function XofU!(X, U, tmin, T, v, P::MvPro)
     for i in 1:length(ss)
         s = ss[i]
         u = U[:, i]
-        X.tt[i] = tofs(s,tmin, T)
-        X.yy[:, i] = xofu(s,u,  T, v,  P)
+        X.tt[i] = tofs(s, tmin, T)
+        X.yy[:, i] = xofu(s, u, T, v, P)
     end
     X
 end
@@ -772,8 +777,8 @@ function XofU!(X, U, tmin, T, v, P::UvPro)
     for i in 1:length(ss)
         s = ss[i]
         u = U[i]
-        X.tt[i] = tofs(s,tmin, T)
-        X.yy[i] = xofu(s,u,  T, v,  P)
+        X.tt[i] = tofs(s, tmin, T)
+        X.yy[i] = xofu(s, u, T, v, P)
     end
     X
 end
@@ -783,15 +788,30 @@ function UofX{L}(X, tmin, T, v, P::CTPro{L})
     UofX!(U, X, tmin, T, v, P) 
 end
 
-
 function UofX!(U, X, tmin, T, v, P::UvPro) 
     tt = X.tt
     yy = X.yy
     for i in 1:length(tt)
         t = tt[i]
         x = yy[i]
-        U.tt[i] = s = soft(t,tmin, T)
-        U.yy[i] = uofx(s, yy[i],  T, v,  P)
+        s = soft(t, tmin, T)
+        U.tt[i] = s
+        U.yy[i] = uofx(s, x, T, v, P)
+    end
+    if norm(tmin + T - tt[end]) < eps(T)
+        U.yy[end] = 0.0 
+    end
+    U
+end
+
+function UofX!(U, X, tmin, T, v, P::MvPro) 
+    tt = X.tt
+    yy = X.yy
+    for i in 1:length(tt)
+        t = tt[i]
+        x = yy[:, i]
+        U.tt[i] = s = soft(t, tmin, T)
+        U.yy[:, i] = uofx(s, x, T, v,P)
     end
     U
 end

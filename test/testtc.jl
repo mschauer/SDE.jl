@@ -77,7 +77,7 @@ nt = int(floor(5N/10))
 
 
 t0 =  dt*(nt-1)
-W = sample(ss, Wiener(d))
+W = sample(tt, Wiener(d))
 @time for i in 1:M
 	resample!(W, Wiener(d))
 	Y = guidedeuler(u, W, T, v, Pt, P)

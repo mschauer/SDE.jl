@@ -173,26 +173,36 @@ for d in [1:3]
 	@test abs(SDE.lp(t, x,T, v, P) - SDE.varlp(t, x,T, v, (t,s) -> t-s, B, beta, s->A)) < 1E-10
 
 
+    tmin = t/2
+    tmax = T
+    T = tmax-tmin
+    
+	s = SDE.soft(t, tmin, T)
+	@test norm(t - SDE.tofs(s, tmin, T)) < 1E-13
+	@test norm(t - (tmax - (T - s)^2/T)) < 1E-13
 
-	s = SDE.soft(t, 0., T)
-
-	v1 = SDE.Vs(s, T, v, P)
-	v2 = SDE.V(t, T, v, P)
-	
-	@test norm(v1-v2) < d^2*1E-13
-	
 	v1 = SDE.Vs(s, T, v, P0)
-	v2 = SDE.V(t, T, v, P0)
-	
+	v2 = SDE.V(t, tmax, v, P0)
+#    println("v10, v20", repr(v1), repr(v2))	
 	@test norm(v1-v2) < d^2*1E-13
 	
+	v1 = SDE.Vs(s, T, v, P)
+	v2 = SDE.V(t, tmax, v, P)
+#    println("v1, v2", repr(v1), repr(v2))	
+ 	@test norm(v1-v2) < d^2*1E-13
 	
+    v1 = SDE.dotVs(s, T, v, P0)
+    v2 = SDE.dotVs(s, T, v, P00)
+    println ("dotv ", repr(v1) ,repr(v2))
+    @test norm(v1 - v2) < 1E-5
 
 	us =  SDE.uofx(s, x, T, v,  P)
-	xt =  SDE.xofu(s, us,  T, v,  P)
+	xt =  SDE.xofu(s, us, T, v,  P)
 	@test norm(x - xt) < 1E-10
+	
+	
 
-	r1 =  SDE.r(t, x, T, v, P)
+	r1 =  SDE.r(t, x, tmax, v, P)
  	r2 =  SDE.J(s, T, P) *us*T/(T-s)
 	@test norm(r1 - r2) < 1E-10
 
