@@ -423,9 +423,25 @@ function V(t, T, v, P::LinPro)
     phim*(v + P.betabyB) - P.betabyB  
 end
 
-function V(t, T, v, P::AffPro)
+function V(t, T, v, P::MvAffPro)
     return v - (T-t)*P.mu
 end
+
+function V(t, T, v, P::UvAffPro)
+    return v - (T-t)*P.mu
+end
+
+
+#%  .. function:: r(t, x, T, v, P)
+#%           
+#%      Returns :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` where
+#%      ``p`` is the transition density of the process ``P``.
+#%  
+
+function r(t, x, T, v, P)
+    SDE.H(t, T, P, SDE.V(t, T, v, P)-x)
+end
+
 
 #%  .. function:: bstar(t, x, T, v, P::MvPro)
 #%           
