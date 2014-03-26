@@ -367,17 +367,6 @@ end
 
 
 
-#%  .. function:: r(t, x, T, v, P)
-#%           
-#%      Returns :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` where
-#%      ``p`` is the transition density of the process ``P``.
-#%  
-
-function r(t, x, T, v, P)
-    H(t, T, P, V(t, T, v, P)-x)
-end
-
-
 
 #%  .. function:: H(t, T, P)
 #%           
@@ -638,13 +627,14 @@ function euler(u, W::MvPath, P::MvPro)
     MvPath(tt,yy)
 end
 
-function guidedeuler(u, W::MvPath, T, v, Pt::MvPro,  P::MvPro)
+function guidedeuler!(Y::MvPath, u, W::MvPath, T, v, Pt::MvPro,  P::MvPro)
     ww = W.yy
-    tt = copy(W.tt)
+    tt = Y.tt
+    tt[:] = W.tt
 
     N = length(tt)
    
-    yy = zeros(size(u)..., N)
+    yy = Y.yy
 
     y = copy(u)
         
@@ -653,8 +643,9 @@ function guidedeuler(u, W::MvPath, T, v, Pt::MvPro,  P::MvPro)
         y[:] = y .+  bcirc(tt[i], y, T, v, Pt, P)*(tt[i+1]-tt[i]) .+ sigma(tt[i],y, P)*(ww[:, i+1]-ww[:, i])
     end
     yy[:,N] = v
-    MvPath(tt,yy)
+    Y
 end
+guidedeuler(u, W::MvPath, T, v, Pt::MvPro,  P::MvPro) = guidedeuler!(MvPath(copy(W.tt), copy(W.yy)), u, W, T, v, Pt,  P)
 
 
 #%  .. function:: llikeliXcirc(t, T, Xcirc, b, a,  B, beta, lambda)
@@ -723,6 +714,40 @@ soft(t, tmin, T) = T-sqrt(T*(T + tmin - t))
 
 
 
+#%  .. function:: Vs (s, T, v, B, beta)
+#%                dotVs (s, T, v, B, beta)
+#%  
+#%      Time changed V and time changed time derivative of V for generation of U
+#%      
+
+
+function Vs (s, T, v, P::LinPro)
+    expm(-P.B*T*(1. - s/T)^2)*( v .+ P.betabyB) .-  P.betabyB
+end
+function dotVs (s, T, v, P::LinPro)
+    expm(-P.B*T*(1. - s/T)^2)*( P.B*v .+ P.beta) 
+end
+
+
+#  return v - (tmax-t)*P.mu
+#  t = tmax - (T - s)^2/T
+#  v - (T-s)^2/T*P.mu
+
+function Vs (s, T, v, P::UvAffPro)
+    return v - T*(1. - s/T)^2*P.mu
+end
+function Vs (s, T, v, P::MvAffPro)
+    return v - T*(1. - s/T)^2*P.mu
+end
+
+function dotVs (s, T, v,  P::MvAffPro)
+    P.mu
+end
+function dotVs (s, T, v,  P::UvAffPro)
+    P.mu
+end
+
+
 #%  .. function:: XofU(UU, tmin, T, v, P) 
 #%    
 #%      U is the scaled and time changed process 
@@ -733,40 +758,13 @@ soft(t, tmin, T) = T-sqrt(T*(T + tmin - t))
 #%      
     
 # 
-xofu(s, u, T, v,  P) = Vs(s, T, v, P) - (T-s)*u
+xofu(s, u, T, v,  P::CTPro) = Vs(s, T, v, P) .- (T-s)*u
 
 #careful here, s is in U-time
-uofx(s, x, T, v,  P)  = (Vs(s, T, v, P)- x)/(T-s)
+uofx(s, x, T, v,  P::CTPro)  = (Vs(s, T, v, P) .- x)/(T-s)
 
-txofsu(s,u, tmin, T, v, P) = (tofs(s, tmin, T), xofu(s, u, T, v, P))
+txofsu(s,u, tmin, T, v, P::CTPro) = (tofs(s, tmin, T), xofu(s, u, T, v, P))
 
-
-#%  .. function:: Vs (s, T, v, B, beta)
-#%                dotVs (s, T, v, B, beta)
-#%  
-#%      Time changed V and time changed time derivative of V for generation of U
-#%      
-
-
-
-function Vs (s, T, v, P::LinPro)
-    expm(-P.B*T*(1. - s/T)^2)*( v + P.betabyB) -  P.betabyB
-end
-function dotVs (s, T, v, P::LinPro)
-    expm(-P.B*T*(1. - s/T)^2)*( P.B*v + P.beta) 
-end
-
-
-#  return v - (tmax-t)*P.mu
-#  t = tmax - (T - s)^2/T
-#  v - (T-s)^2/T*P.mu
-
-function Vs (s, T, v, P::AffPro)
-    return v - T*(1. - s/T)^2*P.mu
-end
-function dotVs (s, T, v,  P::AffPro)
-    P.mu
-end
 
 function XofU{L}(U, tmin, T, v, P::CTPro{L}) 
     X = CTPath{L}(copy(U.tt), copy(U.yy))
