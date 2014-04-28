@@ -105,7 +105,7 @@ function randnormal(d)
 	   s = abs(B[m-1,m-1]) + abs(B[m,m])
 	   if s + abs(B[m,m-1]) > s # if significant offdiagonal value: evaluate submatrix m-1:m;
 		spur = B[m,m] + B[m-1,m-1]
-		dis2 = abs2(B[m,m]- B[m-1,m-1]) + 4.0*B[m,m-1]*B[m-1,m] #= spur^2 - 4det
+		dis2 = abs2(B[m,m]- B[m-1,m-1]) + 4.0*B[m,m-1]*B[m-1,m] # = spur^2 - 4det
 		alpha[m] = alpha[m-1] = 0.5*spur
 		
 		beta[m-1] = 0.5*sqrt(-dis2)

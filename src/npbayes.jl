@@ -255,6 +255,7 @@ end
 
 
 
+
 #int(chol(finger_matrix(pickup_Sigma!(fe_Sigma(rand(10000), 0, 1, 5)))) .!= 0)
 #memory intensive, using dot
 #dont be confused, even wavelets correspond to odd indices as julia indices start at 1
@@ -263,10 +264,10 @@ function fe_Sigma_dot(y, dt::Float64, L)
 	S = zeros(2n-1, 2n-1)
 	yn = y*n
 	evnext = hat(yn)
-	for i in 1:n - 1
+	for i in 1 : n-1
 		ev = evnext
-		od = hat(yn-i + 0.5)
-		evnext = hat(yn-i)
+		od = hat(yn .- (i + 0.5))
+		evnext = hat(yn .-i)
 		S[2i-1, 2i-1] = dot(ev,ev)*dt
 		S[2i, 2i] = dot(od,od)*dt
 		S[2i-1, 2i] = S[2i, 2i-1] = dot(od, ev)*dt
@@ -286,8 +287,8 @@ function fe_SigmaB1_dot(y, dt::Float64, L)
 	evnext = hat(yn)
 	for i in 1:n - 1
 		ev = evnext
-		od = hat(yn-i + 0.5)
-		evnext = hat(yn-i)
+		od = hat(yn .- (i + 0.5))
+		evnext = hat(yn .- i)
 		
 		S[2i-1, 2i-1] = dot(ev,ev)*dt
 		S[2i, 2i] = dot(od,od)*dt
