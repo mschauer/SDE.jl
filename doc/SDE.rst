@@ -25,15 +25,15 @@ Stochastic Processes
          
     Covariance matrix :math:`Cov(X_{T}-x_t)`
     
+.. function:: H(t, T, P)
+         
+    Negative Hessian of :math:`\log p(t,x; T, v)` as a function of ``x``.
+    
 .. function:: r(t, x, T, v, P)
          
     Returns :math:`r(t,x) = \operatorname{grad}_x \log p(t,x; T, v)` where
     ``p`` is the transition density of the process ``P``.
 
-.. function:: H(t, T, P)
-         
-    Negative Hessian of :math:`\log p(t,x; T, v)` as a function of ``x``.
-    
 .. function:: bstar(t, x, T, v, P::MvPro)
          
     Returns the drift function of a vector linear process bridge which end at time T in point v.
@@ -77,10 +77,15 @@ Stochastic Processes
         B, beta -- drift b(x) = Bx + beta of Xtilde
         lambda -- solution of the lyapunov equation for Xtilde
     
-.. function:: tofs(s, T)
-              soft(t, T)
+.. function:: tofs(s, tmin, T)
+              soft(t, tmin, T)
 
-    Time change mapping s in [0, T] (U-time) to t in [t_1, t_2] (X-time), and inverse.
+    Time change mapping s in [0, T=t_2 - t_1] (U-time) to t in [t_1, t_2] (X-time), and inverse.
+    
+.. function:: Vs (s, T, v, B, beta)
+              dotVs (s, T, v, B, beta)
+
+    Time changed V and time changed time derivative of V for generation of U
     
 .. function:: XofU(UU, tmin, T, v, P) 
   
@@ -89,11 +94,6 @@ Stochastic Processes
         U(s)= exp(s/2.)*(v(s) - X(tofs(s))) 
     
     XofU transforms entire process U sampled at time points ss to X at tt.
-    
-.. function:: Vs (s, T, v, B, beta)
-              dotVs (s, T, v, B, beta)
-
-    Time changed V and time changed time derivative of V for generation of U
     
 .. function:: stable(Y, d, ep)
          

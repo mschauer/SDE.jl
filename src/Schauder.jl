@@ -262,7 +262,7 @@ function dropB1(yj)
 	(L, K) = levelK(xj)
 	assert(K==1)
 	n = 2^L-1
-	xj[1:n] += xj[end]
+	xj[1:n] .+= xj[end]
 	xj
 end
 
@@ -283,7 +283,7 @@ end
 #%  	Hat function. Piecewise linear functions with values (-inf,0), (0,0),(0.5,1), (1,0), (inf,0).
 #%  	-- ``x`` vector or number
 function hat(x) 
-	max(1.-abs(2.x-1.),0.)
+	max(1. .- abs(2.*x .- 1.),0.)
 end
 
 
@@ -291,7 +291,7 @@ end
 
 function fe_transf(f, a,b, L)
 	n::Float64 = 2^L-1 	
-	return map!(f, a + [1.:n]/(n+1.)*(b-a))
+	return map!(f, a .+ [1.:n]/(n+1.)*(b-a))
 end
 
 # versions for different basis elements
@@ -300,13 +300,13 @@ end
 # phi2(x) = 1-x
 function fe_transfB2(f, a,b, L)
 	n::Float64 = 2^L-1 	
-		return	[map!(f, a + [1.:n]/(n+1.)*(b-a)) - [1.:n]/(n+1.)*f(a) - [n:-1.:1.]/(n+1.)*f(b) ,f(a) , f(b)]
+		return	[map!(f, a .+ [1.:n]/(n+1.)*(b-a)) .- [1.:n]/(n+1.)*f(a) .- [n:-1.:1.]/(n+1.)*f(b) ,f(a) , f(b)]
 end
 # phi1(x) = c
 # periodic boundary condition
 function fe_transfB1(f, a,b, L)
 	n::Float64 = 2^L-1 	
-	return	[map!(f, a + [1:n]/(n+1)*(b-a)) .- 0.5(f(a) + f(b)), 0.5(f(a) + f(b))]
+	return	[map!(f, a .+ [1:n]/(n+1)*(b-a)) .- 0.5(f(a) + f(b)), 0.5(f(a) + f(b))]
 end
 
 include("npbayes.jl")

@@ -214,10 +214,10 @@ function fe_mu_jl(y, L, K)
 
 	dy = [diff(y),0]
 	for i in 1:n - 1
-		mu[2i-1] = dot(hat(y*n-i + 1),dy)
-		mu[2i] = dot(hat(y*n-i +.5),dy)
+		mu[2i-1] = dot(hat(y*n .- (i - 1)),dy)
+		mu[2i] = dot(hat(y*n .- (i -.5)),dy)
 	end
-	mu[2n-1] = dot(hat(y*n-n+1),dy)
+	mu[2n-1] = dot(hat(y*n.- (n-1)),dy)
 	mu
 end
 
@@ -243,7 +243,7 @@ end
 
 function fe_muB2(mu,y)
 	dy = [diff(y),0]
-	[mu, dot(max(1-y, 0), dy), dot(max(y, 0), dy)]
+	[mu, dot(max(1 .- y, 0), dy), dot(max(y, 0), dy)]
 end
 
 
@@ -266,7 +266,7 @@ function fe_Sigma_dot(y, dt::Float64, L)
 	evnext = hat(yn)
 	for i in 1 : n-1
 		ev = evnext
-		od = hat(yn .- (i + 0.5))
+		od = hat(yn .- (i - 0.5))
 		evnext = hat(yn .-i)
 		S[2i-1, 2i-1] = dot(ev,ev)*dt
 		S[2i, 2i] = dot(od,od)*dt
@@ -287,7 +287,7 @@ function fe_SigmaB1_dot(y, dt::Float64, L)
 	evnext = hat(yn)
 	for i in 1:n - 1
 		ev = evnext
-		od = hat(yn .- (i + 0.5))
+		od = hat(yn .- (i - 0.5))
 		evnext = hat(yn .- i)
 		
 		S[2i-1, 2i-1] = dot(ev,ev)*dt
@@ -314,8 +314,8 @@ function fe_SigmaB2_dot(y, dt::Float64, L)
 
 	for i in 1:n - 1
 		ev = evnext
-		od = hat(yn-i + 0.5)
-		evnext = hat(yn-i)
+		od = hat(yn .- (i - 0.5))
+		evnext = hat(yn .- i)
 		
 		S[2i-1, 2i-1] = dot(ev,ev)*dt
 		S[2i, 2i] = dot(od,od)*dt
@@ -349,10 +349,10 @@ function fe_Sigma_at(y, dt::Float64, L)
 	for t = 1:N
 		yn = y[t]*n
 		i = clamp(ceil(yn), 1, n)
-		j = clamp(ceil(yn-0.5), 1, n-1)
-		S[2i-1, 2i-1] += ((hat(yn-i + 1).^2))*dt
-		S[2j, 2j] += ((hat(yn-j + 0.5).^2))*dt
-		S[2i-1, 2j] = S[2j, 2i-1] += (hat(yn-i + 1).*hat(yn-j + 0.5))*dt
+		j = clamp(ceil(yn .- 0.5), 1, n-1)
+		S[2i-1, 2i-1] += ((hat(yn .- (i - 1)).^2))*dt
+		S[2j, 2j] += ((hat(yn .- (j - 0.5)).^2))*dt
+		S[2i-1, 2j] = S[2j, 2i-1] += (hat(yn .- (i - 1)).*hat(yn .- (j - 0.5)))*dt
 	end
 	S
 end
