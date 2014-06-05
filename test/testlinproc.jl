@@ -201,10 +201,9 @@ for d in [1:3]
 	@test norm(x - xt) < 1E-10
 	
 	
-
 	r1 =  SDE.r(t, x, tmax, v, P)
  	r2 =  SDE.J(s, T, P) *us*T/(T-s)
-	@test norm(r1 - r2) < 1E-10
+	@test norm(r1 .- r2) < 1E-10
 
 end
 
